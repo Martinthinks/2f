@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f7ff" />
+  <title>谷歌2FA验证码生成器</title>
+
+  <style>
+    :root {
+      --bg-1: #f8f9ff;
+      --bg-2: #edf3ff;
+      --bg-3: #fff7fc;
+      --card: rgba(255,255,255,.88);
+      --text: #172033;
+      --text-2: #44516a;
+      --muted: #7d889e;
+      --line: rgba(83,97,134,.12);
+      --violet: #8b5cf6;
+      --violet-2: #bb66f2;
+      --blue: #4f8cff;
+      --cyan: #49c7ff;
+      --pink: #ec8ee8;
+      --orange: #ff8a5b;
+      --red: #e85c72;
+      --green: #18a56d;
+      --shadow: 0 24px 80px rgba(57,72,115,.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "PingFang SC",
+        "Microsoft YaHei",
+        "Segoe UI",
+        sans-serif;
+      background:
+        radial-gradient(circle at 10% 14%, rgba(79,140,255,.18), transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(236,142,232,.17), transparent 29%),
+        radial-gradient(circle at 82% 88%, rgba(73,199,255,.15), transparent 28%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 48%, var(--bg-3) 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(85,103,150,.032) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(85,103,150,.032) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: radial-gradient(circle at center, #000 0%, transparent 80%);
+      opacity: .72;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 999px;
+      pointer-events: none;
+      filter: blur(18px);
+      opacity: .88;
+    }
+
+    .orb.one {
+      width: 280px;
+      height: 280px;
+      left: -100px;
+      bottom: 5%;
+      background: linear-gradient(135deg, rgba(139,92,246,.17), rgba(73,199,255,.12));
+    }
+
+    .orb.two {
+      width: 240px;
+      height: 240px;
+      right: -80px;
+      top: 6%;
+      background: linear-gradient(135deg, rgba(236,142,232,.18), rgba(79,140,255,.12));
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+      padding:
+        max(32px, env(safe-area-inset-top))
+        0
+        max(32px, env(safe-area-inset-bottom));
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      align-items: center;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.32fr) minmax(320px, .68fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,.95);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.78));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(79,140,255,.10), transparent 35%),
+        radial-gradient(circle at 94% 8%, rgba(184,108,255,.10), transparent 34%);
+    }
+
+    .generator {
+      padding: 30px 34px 28px;
+    }
+
+    .inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* centered top section */
+    .hero {
+      text-align: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .logo-wrap {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(139,92,246,.12), rgba(79,140,255,.14));
+      border: 1px solid rgba(139,92,246,.13);
+      box-shadow: 0 14px 28px rgba(88,102,164,.11);
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4.2vw, 40px);
+      line-height: 1.08;
+      letter-spacing: -1.25px;
+      font-weight: 920;
+    }
+
+    h1 span {
+      background: linear-gradient(100deg, #8b5cf6 0%, #bb66f2 38%, #4f8cff 74%, #49c7ff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      margin-top: 9px;
+      color: var(--text-2);
+      font-size: 15px;
+      font-weight: 680;
+    }
+
+    .code-stage {
+      padding: 28px 0 18px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      margin-bottom: 17px;
+      background: rgba(79,140,255,.08);
+      color: #4f69a8;
+      font-size: 13px;
+      font-weight: 780;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--violet), var(--blue));
+      box-shadow: 0 0 0 4px rgba(139,92,246,.09);
+    }
+
+    /* Safari-safe code layout */
+    .code-display {
+      width: min(100%, 620px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(14px, 4vw, 34px);
+      padding: 0 clamp(2px, 1vw, 8px);
+      align-items: center;
+    }
+
+    .code-group {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(1px, .6vw, 6px);
+    }
+
+    .digit {
+      min-width: 0;
+      text-align: center;
+      font-size: clamp(54px, 8.2vw, 92px);
+      line-height: .95;
+      font-weight: 920;
+      letter-spacing: -.04em;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+      background: linear-gradient(105deg, #8d5bf6 0%, #c16ae8 42%, #547cf5 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 14px 22px rgba(93,84,189,.12));
+    }
+
+    .countdown-row {
+      margin-top: 22px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .countdown-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      color: var(--text-2);
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(80,98,138,.10);
+      box-shadow: 0 10px 26px rgba(68,83,129,.08);
+    }
+
+    .mini-timer {
+      position: relative;
+      width: 30px;
+      height: 30px;
+      flex: none;
+    }
+
+    .mini-timer svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+    }
+
+    .circle-bg {
+      fill: none;
+      stroke: rgba(78,96,136,.12);
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    .circle-progress {
+      fill: none;
+      stroke: url(#timerGradient);
+      stroke-width: 4;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .35s linear;
+    }
+
+    .seconds {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 860;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .countdown-label {
+      font-size: 14px;
+      font-weight: 730;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1.25fr .9fr .9fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    button {
+      height: 54px;
+      border: 0;
+      border-radius: 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 820;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .primary-btn {
+      color: #fff;
+      background: linear-gradient(135deg, var(--violet) 0%, #7566f7 52%, var(--blue) 100%);
+      box-shadow: 0 16px 30px rgba(104,92,224,.22);
+    }
+
+    .secondary-btn {
+      color: #3e4d69;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(79,96,136,.12);
+      box-shadow: 0 10px 22px rgba(68,83,129,.06);
+    }
+
+    .copy-icon {
+      width: 20px;
+      height: 20px;
+      flex: none;
+    }
+
+    /* filled lower information section */
+    .bottom-info {
+      margin-top: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .security-alert {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 46px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(255,138,91,.12), rgba(236,142,232,.10));
+      border: 1px solid rgba(232,92,114,.13);
+    }
+
+    .security-alert::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -42px;
+      top: -58px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.22);
+    }
+
+    .alert-icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      color: #fff;
+      font-size: 21px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--orange), var(--red));
+      box-shadow: 0 12px 24px rgba(232,92,114,.20);
+    }
+
+    .alert-copy {
+      position: relative;
+      z-index: 1;
+    }
+
+    .alert-title {
+      color: #b6495c;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      margin-bottom: 5px;
+    }
+
+    .alert-text {
+      color: #7c4050;
+      font-size: 16px;
+      line-height: 1.55;
+      font-weight: 820;
+    }
+
+    .info-row {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 12px;
+    }
+
+    .mini-card {
+      min-height: 118px;
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(82,97,134,.10);
+      box-shadow: 0 12px 28px rgba(67,81,125,.05);
+    }
+
+    .mini-card-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .mini-icon {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: #6c65d9;
+      font-size: 16px;
+      font-weight: 900;
+      background: linear-gradient(135deg, rgba(139,92,246,.13), rgba(79,140,255,.13));
+    }
+
+    .mini-card strong {
+      font-size: 14px;
+    }
+
+    .mini-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.6;
+    }
+
+    .contact-card {
+      background:
+        linear-gradient(135deg, rgba(79,140,255,.08), rgba(73,199,255,.08));
+    }
+
+    .contact-name {
+      margin-top: 7px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      color: #4260a0;
+      background: rgba(255,255,255,.74);
+      border: 1px solid rgba(79,140,255,.11);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+
+    /* right panel */
+    .info-panel {
+      padding: 28px;
+    }
+
+    .info-kicker {
+      color: #6f7b92;
+      font-size: 12px;
+      font-weight: 840;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .info-title {
+      margin: 9px 0 0;
+      font-size: 26px;
+      line-height: 1.18;
+      letter-spacing: -.7px;
+      font-weight: 900;
+    }
+
+    .info-desc {
+      margin: 10px 0 0;
+      color: var(--text-2);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .feature-card {
+      min-height: 122px;
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.70);
+      border: 1px solid rgba(82,97,134,.10);
+      box-shadow: 0 12px 28px rgba(67,81,125,.06);
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      color: #6c65d9;
+      font-size: 17px;
+      font-weight: 900;
+      background: linear-gradient(135deg, rgba(139,92,246,.13), rgba(79,140,255,.13));
+    }
+
+    .feature-card strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .feature-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .howto {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(79,140,255,.09), rgba(184,108,255,.08));
+      border: 1px solid rgba(102,102,202,.08);
+    }
+
+    .howto-title {
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 860;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .step + .step {
+      margin-top: 10px;
+    }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 860;
+      background: linear-gradient(135deg, var(--violet), var(--blue));
+    }
+
+    .step-text {
+      padding-top: 2px;
+      color: var(--text-2);
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+
+    .trust-row {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #67728a;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .trust-dot {
+      width: 9px;
+      height: 9px;
+      flex: none;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(24,165,109,.10);
+    }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(39,49,76,.28);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .modal-mask.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(100%, 440px);
+      padding: 24px;
+      border-radius: 24px;
+      color: var(--text);
+      background: rgba(255,255,255,.95);
+      border: 1px solid rgba(255,255,255,.98);
+      box-shadow: 0 28px 90px rgba(48,60,100,.24);
+    }
+
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: 23px;
+      letter-spacing: -.45px;
+    }
+
+    .modal p {
+      margin: 0 0 18px;
+      color: var(--text-2);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .modal label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .secret-input {
+      width: 100%;
+      height: 52px;
+      padding: 0 14px;
+      outline: none;
+      border-radius: 15px;
+      border: 1px solid rgba(79,96,136,.16);
+      background: #fff;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 680;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+    }
+
+    .secret-input:focus {
+      border-color: rgba(109,97,237,.70);
+      box-shadow: 0 0 0 4px rgba(109,97,237,.10);
+    }
+
+    .error {
+      min-height: 18px;
+      margin-top: 9px;
+      color: var(--red);
+      font-size: 12px;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr .68fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(24px, env(safe-area-inset-bottom));
+      z-index: 40;
+      transform: translateX(-50%) translateY(18px);
+      padding: 11px 16px;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(38,48,74,.94);
+      box-shadow: 0 16px 42px rgba(38,48,74,.24);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 920px) {
+      .shell {
+        width: min(760px, calc(100% - 24px));
+        padding-top: 22px;
+        padding-bottom: 22px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .info-panel {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .shell {
+        width: min(100%, calc(100% - 16px));
+        padding-top: 10px;
+        padding-bottom: 14px;
+      }
+
+      .layout {
+        gap: 12px;
+      }
+
+      .panel {
+        border-radius: 24px;
+      }
+
+      .generator {
+        padding: 22px 16px 18px;
+      }
+
+      .hero {
+        padding-bottom: 18px;
+      }
+
+      .logo-wrap {
+        width: 54px;
+        height: 54px;
+        border-radius: 17px;
+        margin-bottom: 14px;
+      }
+
+      .logo {
+        width: 40px;
+        height: 40px;
+      }
+
+      h1 {
+        font-size: clamp(25px, 7.3vw, 32px);
+      }
+
+      .subtitle {
+        font-size: 13px;
+      }
+
+      .code-stage {
+        padding: 24px 0 16px;
+      }
+
+      .eyebrow {
+        margin-bottom: 14px;
+      }
+
+      .code-display {
+        gap: 12px;
+        padding: 0;
+      }
+
+      .digit {
+        font-size: clamp(46px, 14vw, 68px);
+      }
+
+      .countdown-row {
+        margin-top: 18px;
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .bottom-info {
+        margin-top: 14px;
+      }
+
+      .security-alert {
+        grid-template-columns: 42px 1fr;
+        padding: 14px;
+      }
+
+      .alert-icon {
+        width: 42px;
+        height: 42px;
+      }
+
+      .alert-text {
+        font-size: 14px;
+      }
+
+      .info-row {
+        grid-template-columns: 1fr;
+      }
+
+      .info-panel {
+        padding: 20px 16px;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .feature-card {
+        min-height: 116px;
+        padding: 14px;
+      }
+
+      .modal-actions {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        height: 52px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .code-display {
+        gap: 8px;
+      }
+
+      .digit {
+        font-size: clamp(42px, 13.5vw, 58px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+
+  <main class="shell">
+    <div class="layout">
+      <section class="panel generator">
+        <div class="inner">
+          <header class="hero">
+            <div class="logo-wrap" aria-hidden="true">
+              <svg class="logo" viewBox="0 0 128 128">
+                <defs>
+                  <linearGradient id="logoRing" x1="18" y1="18" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#b86cff"/>
+                    <stop offset=".56" stop-color="#7566f7"/>
+                    <stop offset="1" stop-color="#4f8cff"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="64" cy="64" r="47" fill="rgba(255,255,255,.42)" stroke="url(#logoRing)" stroke-width="8"/>
+                <circle cx="64" cy="64" r="34" fill="none" stroke="rgba(61,77,113,.72)" stroke-width="5.5" stroke-dasharray="11 9"/>
+                <line x1="64" y1="64" x2="64" y2="34" stroke="#ff6076" stroke-width="8" stroke-linecap="round"/>
+                <line x1="64" y1="64" x2="91" y2="80" stroke="#ff6076" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="64" cy="64" r="10" fill="#ffc94d"/>
+              </svg>
+            </div>
+
+            <h1>谷歌<span>2FA验证码</span>生成器</h1>
+            <div class="subtitle">Gmail 邮箱两步验证码在线生成工具</div>
+          </header>
+
+          <div class="code-stage">
+            <div class="eyebrow">当前动态验证码</div>
+
+            <div class="code-display" aria-label="当前6位验证码">
+              <div class="code-group">
+                <span class="digit" id="digit0">-</span>
+                <span class="digit" id="digit1">-</span>
+                <span class="digit" id="digit2">-</span>
+              </div>
+              <div class="code-group">
+                <span class="digit" id="digit3">-</span>
+                <span class="digit" id="digit4">-</span>
+                <span class="digit" id="digit5">-</span>
+              </div>
+            </div>
+
+            <div class="countdown-row">
+              <div class="countdown-pill">
+                <div class="mini-timer" aria-label="验证码倒计时">
+                  <svg viewBox="0 0 30 30">
+                    <defs>
+                      <linearGradient id="timerGradient" x1="3" y1="3" x2="27" y2="27" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#b86cff"/>
+                        <stop offset=".55" stop-color="#7566f7"/>
+                        <stop offset="1" stop-color="#4f8cff"/>
+                      </linearGradient>
+                    </defs>
+                    <circle class="circle-bg" cx="15" cy="15" r="12"></circle>
+                    <circle id="circleProgress" class="circle-progress" cx="15" cy="15" r="12"></circle>
+                  </svg>
+                  <div class="seconds" id="seconds">--</div>
+                </div>
+                <div class="countdown-label">秒后自动刷新</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary-btn" id="copyBtn">
+              <svg class="copy-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <rect x="17" y="17" width="22" height="22" rx="4" stroke="white" stroke-width="4"/>
+                <path d="M10 30V14a4 4 0 0 1 4-4h16" stroke="white" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+              复制验证码
+            </button>
+
+            <button class="secondary-btn" id="copyLinkBtn">复制完整链接</button>
+            <button class="secondary-btn" id="changeBtn">更换密钥</button>
+          </div>
+
+          <section class="bottom-info">
+            <div class="security-alert">
+              <div class="alert-icon">!</div>
+              <div class="alert-copy">
+                <div class="alert-title">账户安全提醒</div>
+                <div class="alert-text">建议2天后修改为自己的身份验证器密钥，以保护账户安全</div>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="mini-card">
+                <div class="mini-card-head">
+                  <div class="mini-icon">✓</div>
+                  <strong>使用建议</strong>
+                </div>
+                <p>验证码每30秒自动刷新。使用前请确认页面显示的验证码仍在有效时间内。</p>
+              </div>
+
+              <div class="mini-card contact-card">
+                <div class="mini-card-head">
+                  <div class="mini-icon">?</div>
+                  <strong>需要帮助</strong>
+                </div>
+                <p>有使用问题可联系：</p>
+                <div class="contact-name">Cedars8</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="panel info-panel">
+        <div class="inner">
+          <div class="info-kicker">2FA TOOL</div>
+          <h2 class="info-title">更清晰、更方便地查看动态验证码</h2>
+          <p class="info-desc">
+            页面会根据链接中的密钥在浏览器本地生成验证码，并每30秒自动更新。
+          </p>
+
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-icon">30</div>
+              <strong>30秒自动刷新</strong>
+              <span>无需手动重载页面，验证码自动更新。</span>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">6</div>
+              <strong>6位大号显示</strong>
+              <span>验证码居中显示，查看更直接。</span>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">⌘</div>
+              <strong>一键复制</strong>
+              <span>支持复制验证码，也可复制当前完整链接。</span>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-icon">↻</div>
+              <strong>随时更换密钥</strong>
+              <span>修改链接或点击按钮，即可生成新的验证码。</span>
+            </div>
+          </div>
+
+          <div class="howto">
+            <div class="howto-title">使用方式</div>
+
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-text">打开带有密钥的完整链接，页面自动生成验证码。</div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-text">点击“复制验证码”，即可直接粘贴使用。</div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-text">点击“复制完整链接”，可以保存或发送当前页面地址。</div>
+            </div>
+          </div>
+
+          <div class="trust-row">
+            <span class="trust-dot"></span>
+            <span>验证码计算在当前浏览器内完成。</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="modal-mask show" id="modalMask">
+    <div class="modal">
+      <h2>输入2FA密钥</h2>
+      <p>
+        请输入 Base32 密钥。页面也支持
+        <strong>/密钥</strong>、<strong>#密钥</strong>、<strong>?key=密钥</strong>
+        三种链接直达方式。
+      </p>
+
+      <label for="secretInput">身份验证器密钥</label>
+      <input
+        class="secret-input"
+        id="secretInput"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder="例如 JBSWY3DPEHPK3PXP"
+      />
+
+      <div class="error" id="errorText"></div>
+
+      <div class="modal-actions">
+        <button class="primary-btn" id="saveSecretBtn">开始生成</button>
+        <button class="secondary-btn" id="clearBtn">清空</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">已复制</div>
+
+  <script>
+    const PERIOD = 30;
+    const DIGITS = 6;
+    const RADIUS = 12;
+    const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+    let secret = "";
+    let currentCode = "";
+    let timer = null;
+
+    const progress = document.getElementById("circleProgress");
+    const secondsEl = document.getElementById("seconds");
+    const modalMask = document.getElementById("modalMask");
+    const secretInput = document.getElementById("secretInput");
+    const errorText = document.getElementById("errorText");
+    const toast = document.getElementById("toast");
+
+    const digitEls = Array.from({ length: 6 }, (_, index) =>
+      document.getElementById(`digit${index}`)
+    );
+
+    progress.style.strokeDasharray = CIRCUMFERENCE;
+    progress.style.strokeDashoffset = CIRCUMFERENCE;
+
+    function cleanSecret(value) {
+      return value
+        .replace(/\s+/g, "")
+        .replace(/-/g, "")
+        .replace(/=+$/g, "")
+        .toLowerCase();
+    }
+
+    function normalizeForBase32(value) {
+      return value
+        .replace(/\s+/g, "")
+        .replace(/-/g, "")
+        .replace(/=+$/g, "")
+        .toUpperCase();
+    }
+
+    function base32ToBytes(base32) {
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+      let bits = "";
+      const bytes = [];
+
+      base32 = normalizeForBase32(base32);
+
+      if (!base32 || base32.length < 8) {
+        throw new Error("密钥太短，请检查是否复制完整");
+      }
+
+      for (const char of base32) {
+        const value = alphabet.indexOf(char);
+
+        if (value === -1) {
+          throw new Error("密钥格式错误，只能包含 A-Z 和 2-7");
+        }
+
+        bits += value.toString(2).padStart(5, "0");
+      }
+
+      for (let i = 0; i + 8 <= bits.length; i += 8) {
+        bytes.push(parseInt(bits.slice(i, i + 8), 2));
+      }
+
+      return new Uint8Array(bytes);
+    }
+
+    function counterToBuffer(counter) {
+      const buffer = new ArrayBuffer(8);
+      const view = new DataView(buffer);
+
+      view.setUint32(0, Math.floor(counter / 0x100000000), false);
+      view.setUint32(4, counter >>> 0, false);
+
+      return buffer;
+    }
+
+    async function generateTOTP(base32Secret) {
+      const keyBytes = base32ToBytes(base32Secret);
+      const counter = Math.floor(Date.now() / 1000 / PERIOD);
+
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        keyBytes,
+        { name: "HMAC", hash: "SHA-1" },
+        false,
+        ["sign"]
+      );
+
+      const hmac = new Uint8Array(
+        await crypto.subtle.sign("HMAC", cryptoKey, counterToBuffer(counter))
+      );
+
+      const offset = hmac[hmac.length - 1] & 0x0f;
+
+      const binary =
+        ((hmac[offset] & 0x7f) << 24) |
+        ((hmac[offset + 1] & 0xff) << 16) |
+        ((hmac[offset + 2] & 0xff) << 8) |
+        (hmac[offset + 3] & 0xff);
+
+      return String(binary % 10 ** DIGITS).padStart(DIGITS, "0");
+    }
+
+    function renderCode(code) {
+      currentCode = code;
+
+      digitEls.forEach((el, index) => {
+        el.textContent = code[index] || "-";
+      });
+    }
+
+    function renderCountdown() {
+      const now = Math.floor(Date.now() / 1000);
+      const remaining = PERIOD - (now % PERIOD);
+
+      secondsEl.textContent = remaining;
+
+      const percent = remaining / PERIOD;
+      progress.style.strokeDashoffset = CIRCUMFERENCE * (1 - percent);
+    }
+
+    async function tick() {
+      if (!secret) return;
+
+      try {
+        const code = await generateTOTP(secret);
+        renderCode(code);
+        renderCountdown();
+      } catch (error) {
+        showModal();
+        errorText.textContent = error.message || "生成失败，请检查密钥";
+        renderCode("------");
+        secondsEl.textContent = "--";
+        progress.style.strokeDashoffset = CIRCUMFERENCE;
+      }
+    }
+
+    function showModal() {
+      modalMask.classList.add("show");
+      setTimeout(() => secretInput.focus(), 80);
+    }
+
+    function hideModal() {
+      modalMask.classList.remove("show");
+    }
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add("show");
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1500);
+    }
+
+    function getSecretFromUrl() {
+      const hashValue = decodeURIComponent((location.hash || "").slice(1).trim());
+      if (hashValue) return hashValue;
+
+      const params = new URLSearchParams(location.search);
+      const queryValue =
+        params.get("key") ||
+        params.get("secret") ||
+        params.get("s");
+
+      if (queryValue) return queryValue;
+
+      const pathValue = decodeURIComponent(
+        location.pathname.replace(/^\/+|\/+$/g, "").trim()
+      );
+
+      if (
+        pathValue &&
+        pathValue !== "index.html" &&
+        !pathValue.includes(".") &&
+        /^[A-Za-z2-7=\-\s]+$/.test(pathValue)
+      ) {
+        return pathValue;
+      }
+
+      return "";
+    }
+
+    function getFull2FALink() {
+      if (!secret) return "";
+      return `${location.origin}/${encodeURIComponent(secret)}`;
+    }
+
+    async function startWithSecret(value) {
+      const cleaned = cleanSecret(value);
+
+      base32ToBytes(cleaned);
+
+      secret = cleaned;
+      secretInput.value = cleaned;
+
+      hideModal();
+      await tick();
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, 1000);
+    }
+
+    async function copyText(text, successMessage) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(successMessage);
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+
+        showToast(successMessage);
+      }
+    }
+
+    document.getElementById("saveSecretBtn").addEventListener("click", async () => {
+      errorText.textContent = "";
+
+      try {
+        await startWithSecret(secretInput.value);
+        history.replaceState(null, "", "/" + encodeURIComponent(secret));
+      } catch (error) {
+        errorText.textContent = error.message || "密钥格式错误";
+      }
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      secretInput.value = "";
+      errorText.textContent = "";
+      secretInput.focus();
+    });
+
+    document.getElementById("changeBtn").addEventListener("click", () => {
+      showModal();
+      secretInput.select();
+    });
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      if (!currentCode || currentCode.includes("-")) {
+        showToast("请先输入密钥");
+        return;
+      }
+
+      await copyText(currentCode, "验证码已复制");
+    });
+
+    document.getElementById("copyLinkBtn").addEventListener("click", async () => {
+      const link = getFull2FALink();
+
+      if (!link) {
+        showToast("请先输入密钥");
+        return;
+      }
+
+      await copyText(link, "完整链接已复制");
+    });
+
+    secretInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        document.getElementById("saveSecretBtn").click();
+      }
+    });
+
+    (async function startFromUrlSecret() {
+      const rawValue = getSecretFromUrl();
+
+      if (!rawValue) {
+        renderCode("------");
+        return;
+      }
+
+      try {
+        await startWithSecret(rawValue);
+
+        const currentPath = location.pathname.replace(/^\/+|\/+$/g, "");
+
+        if (currentPath !== secret) {
+          history.replaceState(null, "", "/" + encodeURIComponent(secret));
+        }
+      } catch (error) {
+        showModal();
+        errorText.textContent = error.message || "链接里的密钥格式错误";
+      }
+    })();
+
+    renderCode("------");
+  </script>
+</body>
+</html>
