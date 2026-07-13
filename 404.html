@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#FAF9F5">
+    <title>谷歌 2FA - 独立站先锋波普艺术版</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 全局变量与波普艺术风格基调 --- */
+        :root {
+            --primary: #4F46E5;
+            --secondary: #D946EF;
+            --pop-yellow: #FBBF24;
+            --pop-blue: #3B82F6;
+            --pop-pink: #EC4899;
+            --stroke-black: #0F172A; /* 3px 强硬度黑描边 */
+            --bg-color: #FAF9F5; 
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+        html, body { min-height: 100%; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Outfit', -apple-system, sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- 🎨 1. 外围背景丰富设计（不单调的科技网格+艺术几何） --- */
+        .advanced-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-image: 
+                linear-gradient(to right, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+                linear-gradient(to right, rgba(15, 23, 42, 0.01) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(15, 23, 42, 0.01) 1px, transparent 1px);
+            pointer-events: none;
+        }
+
+        /* 外部大区域装饰件 */
+        .outer-deco {
+            position: absolute; z-index: 0; pointer-events: none;
+            border: 3px solid var(--stroke-black);
+            animation: floatingDeco 6s infinite alternate ease-in-out;
+        }
+        .out-square { width: 36px; height: 36px; background: var(--pop-pink); top: 15%; left: 6%; transform: rotate(15deg); box-shadow: 4px 4px 0 var(--stroke-black); }
+        .out-circle { width: 44px; height: 44px; background: var(--pop-yellow); border-radius: 50%; bottom: 15%; left: 5%; box-shadow: -4px 4px 0 var(--stroke-black); animation-delay: -2s;}
+        .out-triangle { width: 40px; height: 40px; background: var(--pop-blue); top: 18%; right: 6%; transform: rotate(-20deg); box-shadow: 4px 4px 0 var(--stroke-black); animation-delay: -4s;}
+        
+        @keyframes floatingDeco {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-15px) rotate(10deg); }
+        }
+
+        /* --- 📦 2. 完美保留：大方宽敞的主内容板（加入黑粗边） --- */
+        main {
+            position: relative; z-index: 10; 
+            width: 92%; max-width: 900px; min-height: 680px; /* 严格维持原本的大气黄金比例 */
+            background: #FFFFFF;
+            border: 3px solid var(--stroke-black); /* 👈 引入黑粗线 */
+            border-radius: 32px; 
+            padding: 64px 72px; 
+            box-shadow: 12px 12px 0 rgba(15, 23, 42, 0.04);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 40px 0;
+        }
+
+        /* --- 🎨 3. 纯增：内容版块内部的彩色波普几何块（参考图三完美丰富内页） --- */
+        .inner-pop-shape {
+            position: absolute; z-index: 1; pointer-events: none;
+            border: 3px solid var(--stroke-black);
+        }
+        /* 压在验证码左上角的红色倾斜方块 */
+        .inner-shape-rect {
+            width: 34px; height: 34px; background-color: var(--pop-pink);
+            top: 215px; left: 160px; transform: rotate(-12deg);
+            box-shadow: 3px 3px 0 var(--stroke-black);
+        }
+        /* 垫在验证码右下角的黄色正圆饼 */
+        .inner-shape-circle {
+            width: 68px; height: 68px; background-color: var(--pop-yellow);
+            border-radius: 50%; top: 260px; right: 140px;
+            box-shadow: -4px 4px 0 var(--stroke-black);
+        }
+        /* 装饰用的蓝色小原点 */
+        .inner-shape-dot {
+            width: 14px; height: 14px; background-color: var(--pop-blue);
+            border-radius: 50%; top: 155px; left: 95px;
+        }
+
+        /* 四角卡扣 */
+        .corner-deco {
+            position: absolute; width: 24px; height: 24px;
+            border: 3px solid var(--stroke-black); background: var(--bg-color);
+        }
+        .corner-tl { top: -12px; left: -12px; border-radius: 6px; }
+        .corner-tr { top: -12px; right: -12px; border-radius: 6px; }
+        .corner-bl { bottom: -12px; left: -12px; border-radius: 6px; }
+        .corner-br { bottom: -12px; right: -12px; border-radius: 6px; }
+
+        /* 🦁 扒边小狮子 */
+        .privacy-mascot {
+            position: absolute; right: -82px; top: 40%;
+            width: 100px; height: 140px; z-index: -1; cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        main:hover .privacy-mascot { transform: translate(-30px, -20%) rotate(8deg); }
+
+        .brand-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(90deg, #4F46E5, #D946EF);
+            padding: 8px 18px; border: 3px solid var(--stroke-black); border-radius: 100px;
+            color: #FFFFFF; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+            margin-bottom: 20px; box-shadow: 4px 4px 0 var(--stroke-black);
+            position: relative; z-index: 5;
+        }
+
+        /* 渐变高定标题 */
+        h1 { 
+            font-weight: 900; font-size: 44px; letter-spacing: 1px; margin-bottom: 12px; 
+            background: linear-gradient(135deg, #0F172A 0%, #4F46E5 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            position: relative; z-index: 5;
+        }
+        .subtitle { font-size: 15px; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 40px; font-weight: 700; position: relative; z-index: 5; }
+
+        /* 验证码数字区域 (确保盖在几何图形上方) */
+        .code-display {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 110px; font-weight: 700; line-height: 1; letter-spacing: 12px;
+            margin-bottom: 32px; display: flex; gap: 24px;
+            position: relative; z-index: 5; /* 👈 关键：确保数字始终浮在方块和圆饼前面，不遮挡阅读 */
+        }
+        .code-display span {
+            background: linear-gradient(135deg, #0F172A 0%, #4F46E5 50%, #D946EF 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* 居中倒计时组件 */
+        .timer-widget {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            margin-bottom: 42px; position: relative; z-index: 5;
+        }
+        .timer-ring-wrapper { 
+            position: relative; width: 36px; height: 36px; 
+            display: flex; justify-content: center; align-items: center;
+        }
+        .timer-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); width: 36px; height: 36px; }
+        .timer-ring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+        .timer-ring .ring-bg { stroke: #E2E8F0; }
+        .timer-ring .ring-fill { stroke: var(--secondary); transition: stroke-dashoffset 1s linear; }
+        .timer-number {
+            position: relative; z-index: 2; font-size: 15px; font-weight: 900; color: var(--secondary); font-family: 'Space Grotesk', monospace;
+        }
+        .timer-label { font-size: 15px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
+
+        /* --- 🛠️ 严格保留：完全未缩水、开阔大方、极其易点击的按钮系统（加上黑描边） --- */
+        .action-layout-container { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 56px; position: relative; z-index: 5; }
+
+        /* 宽大、舒适的椭圆主复制按钮 */
+        .btn-primary-centered {
+            width: 100%; max-width: 420px;  /* 👈 完美保留最舒适的点击宽度 */
+            height: 64px;
+            background: linear-gradient(90deg, #8B5CF6, #D946EF);
+            color: #FFFFFF; border: 3px solid var(--stroke-black); border-radius: 100px; /* 👈 椭圆粗黑边 */
+            font-size: 16px; font-weight: 700; letter-spacing: 1px; cursor: pointer; 
+            display: flex; justify-content: center; align-items: center; gap: 12px;
+            box-shadow: 4px 5px 0 var(--stroke-black); /* 立体实心阴影 */
+            transition: all 0.2s ease; margin-bottom: 18px;
+        }
+        .btn-primary-centered:hover { transform: translate(-2px, -2px); box-shadow: 6px 7px 0 var(--stroke-black); }
+        .btn-primary-centered:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--stroke-black); }
+
+        /* 完全同宽、平分对齐的次级大按钮 */
+        .secondary-actions-group { display: flex; gap: 16px; justify-content: center; width: 100%; max-width: 420px; }
+        
+        .btn-secondary {
+            flex: 1; height: 58px; /* 👈 保持大尺寸，绝不缩水变小 */
+            background: rgba(15, 23, 42, 0.02); 
+            border: 3px solid var(--stroke-black); border-radius: 100px; /* 👈 椭圆粗黑边 */
+            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+            box-shadow: 4px 4px 0 var(--stroke-black); transition: all 0.2s;
+        }
+        .btn-secondary span {
+            font-size: 14px; font-weight: 800;
+            background: linear-gradient(135deg, #0F172A 0%, #4F46E5 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .btn-secondary svg { width: 18px; height: 18px; color: #4F46E5; }
+        .btn-secondary:hover { background: rgba(15, 23, 42, 0.05); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--stroke-black); }
+        .btn-secondary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--stroke-black); }
+
+        /* --- 🎨 带有丰富色彩渐变与黑线框的底部卡片 --- */
+        .info-cards-grid { display: flex; width: 100%; gap: 24px; position: relative; z-index: 5; }
+        
+        .card-wrapper {
+            flex: 1; border-radius: 20px; padding: 36px 32px; display: flex; flex-direction: column;
+            border: 3px solid var(--stroke-black); /* 👈 强效粗黑框定义 */
+            box-shadow: 5px 6px 0 rgba(15, 23, 42, 0.03); transition: all 0.3s ease;
+        }
+        .help-card-style { background: linear-gradient(135deg, #FFFFFF 50%, #EFF6FF 100%); }
+        .alert-card-style { background: linear-gradient(135deg, #FFFFFF 50%, #FEF2F2 100%); }
+        .card-wrapper:hover { transform: translateY(-4px); box-shadow: 8px 10px 0 rgba(15, 23, 42, 0.06); }
+
+        .card-title-bar { display: flex; align-items: flex-start; gap: 10px; font-size: 16px; font-weight: 800; margin-bottom: 16px; }
+        .card-title-bar svg { flex-shrink: 0; width: 22px; height: 22px; }
+        .help-card-style .card-title-bar { color: #2563EB; }
+        .alert-card-style .card-title-bar { color: #DC2626; }
+        
+        .card-text-body { font-size: 14px; color: var(--text-muted); line-height: 1.7; font-weight: 700; }
+
+        /* 带绿光指示灯的椭圆客服徽章 */
+        .wechat-badge {
+            display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 20px;
+            background: #FFFFFF; border: 3px solid var(--stroke-black); border-radius: 100px;
+            color: #1D4ED8; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s;
+            box-shadow: 3px 3px 0 var(--stroke-black);
+        }
+        .wechat-badge:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--stroke-black); }
+        
+        .status-dot {
+            width: 8px; height: 8px; background-color: #10B981; border-radius: 50%; 
+            box-shadow: 0 0 8px #10B981; animation: pulseGreen 2s infinite;
+        }
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .alert-highlight { color: #DC2626; font-weight: 700; background: #FFFFFF; border: 2px solid var(--stroke-black); padding: 3px 8px; border-radius: 6px; }
+
+        /* --- 大号密钥更换居中弹窗 --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .modal-box {
+            background: #FFFFFF; border: 3px solid var(--stroke-black); border-radius: 24px; padding: 32px 40px; 
+            width: 90%; max-width: 480px; text-align: left; box-shadow: 10px 12px 0 var(--stroke-black);
+            animation: modalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalFadeIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+        .modal-title-group { display: flex; align-items: center; gap: 16px; }
+        .modal-icon {
+            width: 48px; height: 48px; background: #4F46E5; color: white; border: 3px solid var(--stroke-black);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+        }
+        .modal-title-text h3 { font-size: 22px; font-weight: 900; color: var(--text-main); margin-top: 4px; }
+        .modal-subtitle { font-size: 12px; color: var(--primary); font-weight: 700; letter-spacing: 1px; }
+        
+        .modal-close-btn {
+            background: none; border: 3px solid var(--stroke-black); border-radius: 50%; width: 36px; height: 36px;
+            display: flex; justify-content: center; align-items: center; color: var(--text-main); cursor: pointer;
+        }
+
+        .modal-body label { display: block; font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; }
+        .modal-textarea {
+            width: 100%; height: 120px; resize: none; padding: 16px; background: #F8FAFC; border: 3px solid var(--stroke-black);
+            border-radius: 16px; color: var(--text-main); font-family: 'Space Grotesk', monospace; font-size: 15px; font-weight: 600; outline: none;
+        }
+        .modal-textarea:focus { border-color: var(--primary); background: #FFFFFF; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        .modal-helper { font-size: 13px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; font-weight: 700; }
+
+        .modal-btns { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+        .modal-btns button {
+            width: 100%; padding: 16px; border: 3px solid var(--stroke-black); border-radius: 100px;
+            font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-save { background: linear-gradient(90deg, #4F46E5, #7C3AED); color: #FFF; box-shadow: 3px 4px 0 var(--stroke-black); }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 5px 6px 0 var(--stroke-black); }
+        .btn-cancel { background: #FFFFFF; color: var(--text-muted); }
+
+
+        .code-display {
+            justify-content: center;
+            align-items: center;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+        }
+
+        .code-display span {
+            min-width: 3ch;
+            text-align: center;
+        }
+
+        .inline-error {
+            min-height: 18px;
+            margin: -24px 0 28px;
+            color: #DC2626;
+            font-size: 13px;
+            line-height: 1.45;
+            text-align: center;
+            font-weight: 900;
+            position: relative;
+            z-index: 5;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-error {
+            min-height: 18px;
+            margin: 10px 0 0;
+            color: #DC2626;
+            font-size: 13px;
+            line-height: 1.45;
+            text-align: left;
+            font-weight: 900;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: max(32px, env(safe-area-inset-bottom));
+            z-index: 10000;
+            transform: translateX(-50%) translateY(14px);
+            opacity: 0;
+            pointer-events: none;
+            min-height: 42px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            border-radius: 100px;
+            background: #0F172A;
+            border: 3px solid #0F172A;
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            transition: 0.2s ease;
+            box-shadow: 4px 4px 0 rgba(15, 23, 42, 0.18);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 420px) {
+            body { padding: 10px; }
+            main { width: 100%; padding: 34px 18px; }
+            h1 { font-size: 30px; }
+            .subtitle { font-size: 12px; }
+            .brand-badge { font-size: 12px; }
+            .code-display { font-size: clamp(54px, 17vw, 68px); letter-spacing: 2px; gap: 10px; }
+            .timer-label { font-size: 13px; }
+            .card-wrapper { padding: 26px 20px; }
+        }
+
+        /* =========================================
+           📱 移动端自适应（保证大按钮，不折行）
+           ========================================= */
+        @media (max-width: 768px) {
+            main { padding: 40px 24px; width: 92%; min-height: auto; margin: 20px auto; }
+            h1 { font-size: 32px; }
+            /* 智能放大手机端验证码数字，拒绝窄条感 */
+            .code-display { font-size: 76px; letter-spacing: 4px; gap: 16px; margin-bottom: 24px;}
+            .info-cards-grid { flex-direction: column; }
+            .privacy-mascot, .corner-deco, .outer-deco, .inner-pop-shape { display: none; } /* 移动端屏蔽点缀，确保布局安全 */
+            .secondary-actions-group { flex-direction: column; width: 100%; }
+            .btn-secondary { width: 100%; }
+            .modal-box { padding: 24px; }
+        }
+
+        /* =========================================
+           📱 V41 手机端按钮修复：次级按钮改成图二大胶囊效果
+           ========================================= */
+        @media (max-width: 768px) {
+            .action-layout-container {
+                width: 100%;
+                margin-bottom: 56px;
+            }
+
+            .btn-primary-centered {
+                width: 100%;
+                max-width: 100%;
+                height: 76px;
+                border-radius: 999px;
+                border: none;
+                box-shadow: 0 18px 36px -16px rgba(217, 70, 239, 0.45);
+                margin-bottom: 22px;
+            }
+
+            .btn-primary-centered:hover,
+            .btn-primary-centered:active {
+                transform: none;
+                box-shadow: 0 18px 36px -16px rgba(217, 70, 239, 0.45);
+            }
+
+            .secondary-actions-group {
+                width: 100%;
+                max-width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .btn-secondary {
+                width: 100%;
+                height: 70px;
+                flex: none;
+                border-radius: 999px;
+                background: #F8FAFC;
+                border: 1px solid #E2E8F0;
+                box-shadow: none;
+                padding: 0 24px;
+                gap: 12px;
+            }
+
+            .btn-secondary span {
+                font-size: 16px;
+                font-weight: 900;
+                background: none;
+                -webkit-background-clip: initial;
+                background-clip: initial;
+                -webkit-text-fill-color: #0F1B3D;
+                color: #0F1B3D;
+                letter-spacing: 0.2px;
+            }
+
+            .btn-secondary svg {
+                width: 24px;
+                height: 24px;
+                color: #4F46E5;
+            }
+
+            .btn-secondary:hover,
+            .btn-secondary:active {
+                transform: none;
+                box-shadow: none;
+                background: #F8FAFC;
+                border-color: #D7DEE8;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .btn-primary-centered {
+                height: 72px;
+                font-size: 15px;
+            }
+
+            .btn-secondary {
+                height: 68px;
+            }
+
+            .btn-secondary span {
+                font-size: 15px;
+            }
+
+            .btn-secondary svg {
+                width: 22px;
+                height: 22px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="advanced-grid"></div>
+    <div class="outer-deco out-square"></div>
+    <div class="outer-deco out-circle"></div>
+    <div class="outer-deco out-triangle"></div>
+
+    <main>
+        <div class="corner-deco corner-tl"></div>
+        <div class="corner-deco corner-tr"></div>
+        <div class="corner-deco corner-bl"></div>
+        <div class="corner-deco corner-br"></div>
+
+        <div class="inner-pop-shape inner-shape-rect"></div>
+        <div class="inner-pop-shape inner-shape-circle"></div>
+        <div class="inner-pop-shape inner-shape-dot"></div>
+
+        <div class="privacy-mascot" title="隐私安全护卫">
+            <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 50 60 C 85 60, 95 120, 50 135" fill="#F59E0B" stroke="#0F172A" stroke-width="3"/>
+                <path d="M 50 60 C 70 60, 80 110, 50 125" fill="#FBBF24"/>
+                <rect x="0" y="75" width="22" height="14" rx="7" fill="#FBBF24" stroke="#0F172A" stroke-width="3"/>
+                <rect x="0" y="105" width="22" height="14" rx="7" fill="#FBBF24" stroke="#0F172A" stroke-width="3"/>
+                <path d="M50 5 Q70 5 85 20 Q100 40 95 65 Q90 90 50 95 Q10 90 5 65 Q0 40 15 20 Q30 5 50 5 Z" fill="#F59E0B" stroke="#0F172A" stroke-width="3"/>
+                <path d="M50 15 Q65 15 75 25 Q85 40 85 60 Q80 80 50 85 Q20 80 15 60 Q15 40 25 25 Q35 15 50 15 Z" fill="#FBBF24"/>
+                <circle cx="22" cy="35" r="8" fill="#D97706" stroke="#0F172A" stroke-width="2"/>
+                <circle cx="78" cy="35" r="8" fill="#D97706" stroke="#0F172A" stroke-width="2"/>
+                <path d="M25 55 Q25 30 50 30 Q75 30 75 55 Q75 80 50 80 Q25 80 25 55 Z" fill="#FEF3C7" stroke="#0F172A" stroke-width="3"/>
+                <rect x="23" y="45" width="24" height="15" rx="3" fill="#0F172A"/>
+                <rect x="53" y="45" width="24" height="15" rx="3" fill="#0F172A"/>
+                <line x1="47" y1="52" x2="53" y2="52" stroke="#0F172A" stroke-width="4"/>
+                <polygon points="46,65 54,65 50,71" fill="#92400E"/>
+                <path d="M44 75 Q50 81 56 75" fill="none" stroke="#92400E" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div class="brand-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 16px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            GOOGLE MULTI-FA
+        </div>
+        
+        <h1>谷歌 2FA 验证器</h1>
+        <div class="subtitle">安全凭证在线生成与同步面板</div>
+
+        <div class="code-display" aria-label="当前动态验证码">
+            <span id="codeLeft">---</span>
+            <span id="codeRight">---</span>
+        </div>
+
+        <div class="timer-widget">
+            <div class="timer-ring-wrapper">
+                <svg class="timer-ring" viewBox="0 0 36 36">
+                    <circle class="ring-bg" cx="18" cy="18" r="15"></circle>
+                    <circle class="ring-fill" id="timerRing" cx="18" cy="18" r="15"></circle>
+                </svg>
+                <div class="timer-number" id="countdownNum">30</div>
+            </div>
+            <span class="timer-label">后自动刷新动态验证码</span>
+        </div>
+
+        <p class="inline-error" id="inlineError" hidden></p>
+
+        <div class="action-layout-container">
+            <button class="btn-primary-centered" id="copyCode" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 20px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376A8.965 8.965 0 0 0 12 12.75c-.497 0-.982.04-1.455.12l-.179.032m7.436 4.32a8.997 8.997 0 0 0 0-12.018m-.012 12.019a9.07 9.07 0 0 1-2.185 2.183m-5.123 0a9.06 9.06 0 0 0 2.344-2.432m0 0a8.949 8.949 0 0 1 2.083-2.265m-2.083 2.265A8.96 8.96 0 0 0 14.25 12.75c.497 0 .982-.04 1.455-.12m-1.455 0a8.964 8.964 0 0 0-3.375-3.375m3.375 3.375V4.625c0-.621-.504-1.125-1.125-1.125h-1.5a3.375 3.375 0 0 0-3.375 3.375M9 21h1.5a2.25 2.25 0 0 0 2.25-2.25v-1.5M9 21a2.25 2.25 0 0 1-2.25-2.25v-1.5M9 21h.008M12 12.75a8.96 8.96 0 0 1 3.375-3.375m0 0h1.5a2.25 2.25 0 0 1 2.25 2.25v1.5m-3.375-3.375a8.964 8.964 0 0 0-3.375-3.375M15.75 9.75h.008M12 6c0-.528.04-1.045.12-1.545M12 6a8.965 8.965 0 0 0-3.375 3.375M12 6V4.625c0-.135-.024-.265-.067-.385m0 0A3.374 3.374 0 0 0 9 1.5H7.5a3.375 3.375 0 0 0-3.375 3.375V6m3.375-1.875h1.5a1.125 1.125 0 0 1 1.125 1.125v1.5m-6 0h1.5m-1.5 0A1.125 1.125 0 0 0 4.125 7.875v9.75c0 .621.504 1.125 1.125 1.125h1.5" />
+                </svg>
+                <span class="button-label">一键复制动态验证码</span>
+            </button>
+
+            <div class="secondary-actions-group">
+                <button class="btn-secondary" id="copyLink" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                    </svg>
+                    <span class="button-label">复制完整链接</span>
+                </button>
+                <button class="btn-secondary" id="openSecret" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                    </svg>
+                    <span class="button-label">安全更换密钥</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="info-cards-grid">
+            <div class="card-wrapper help-card-style">
+                <div class="card-title-bar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                    </svg>
+                    需要任何技术支持？
+                </div>
+                <div class="card-text-body">
+                    若您在两步验证配置中遇到任何阻碍，可随时向官方微信客服发起咨询：<br>
+                    <button class="wechat-badge" id="supportButton" type="button">
+                        <span class="status-dot" aria-hidden="true"></span>
+                        <span class="button-label">Cedars8</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 14px;">
+                            <rect x="8" y="8" width="11" height="11" rx="1.7"></rect>
+                            <path d="M5 15V6.8C5 5.8 5.8 5 6.8 5H15"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-wrapper alert-card-style">
+                <div class="card-title-bar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" />
+                    </svg>
+                    高危账户安全提醒
+                </div>
+                <div class="card-text-body">
+                    为了阻止恶意的凭证拦截，强烈建议您在首次登入后 <span class="alert-highlight">1天内</span> 立即修改为您个人的独立私有密钥，确保资产安全。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="keyModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <form class="modal-box" id="secretForm">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 24px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                        </svg>
+                    </div>
+                    <div class="modal-title-text">
+                        <div class="modal-subtitle">身份验证器设置</div>
+                        <h3 id="modalTitle">更换验证密钥</h3>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="closeDialog" type="button" aria-label="关闭">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <label for="secretInput">Base32 密钥或 otpauth:// 链接</label>
+                <textarea class="modal-textarea" id="secretInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例如：JBSWY3DPEHPK3PXP"></textarea>
+                <p class="modal-helper">支持直接输入密钥，也支持 /密钥、#密钥、?key=密钥 三种链接直达方式。</p>
+                <p class="modal-error" id="fieldError" hidden></p>
+            </div>
+
+            <div class="modal-btns">
+                <button class="btn-save" type="submit">生成验证码</button>
+                <button class="btn-cancel" id="cancelDialog" type="button">取消</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="toast" id="toast">已复制</div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var state = {
+        secret: "",
+        digits: 6,
+        period: 30,
+        code: "",
+        lastCounter: -1
+      };
+
+      var ringLength = 94.248;
+
+      function $(selector) {
+        return document.querySelector(selector);
+      }
+
+      var modal = $("#keyModal");
+      var secretInput = $("#secretInput");
+      var fieldError = $("#fieldError");
+      var toast = $("#toast");
+      var toastTimer;
+
+      function base32ToBytes(value) {
+        var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+        var clean = String(value || "").toUpperCase().replace(/[\s=-]/g, "");
+
+        if (!clean) {
+          throw new Error("请输入有效的 Base32 密钥");
+        }
+
+        var bits = "";
+        var bytes = [];
+
+        for (var i = 0; i < clean.length; i += 1) {
+          var index = alphabet.indexOf(clean.charAt(i));
+
+          if (index < 0) {
+            throw new Error("密钥包含无效字符，只能包含 A-Z 和 2-7");
+          }
+
+          bits += index.toString(2).padStart(5, "0");
+        }
+
+        for (var bit = 0; bit + 8 <= bits.length; bit += 8) {
+          bytes.push(parseInt(bits.slice(bit, bit + 8), 2));
+        }
+
+        if (!bytes.length) {
+          throw new Error("密钥长度不足");
+        }
+
+        return bytes;
+      }
+
+      function rotateLeft(value, shift) {
+        return (value << shift) | (value >>> (32 - shift));
+      }
+
+      function sha1(input) {
+        var bytes = input.slice();
+        var bitLength = bytes.length * 8;
+
+        bytes.push(128);
+
+        while ((bytes.length % 64) !== 56) {
+          bytes.push(0);
+        }
+
+        var high = Math.floor(bitLength / 4294967296);
+        var low = bitLength >>> 0;
+
+        for (var h = 3; h >= 0; h -= 1) {
+          bytes.push((high >>> (h * 8)) & 255);
+        }
+
+        for (var l = 3; l >= 0; l -= 1) {
+          bytes.push((low >>> (l * 8)) & 255);
+        }
+
+        var h0 = 0x67452301;
+        var h1 = 0xefcdab89;
+        var h2 = 0x98badcfe;
+        var h3 = 0x10325476;
+        var h4 = 0xc3d2e1f0;
+        var words = new Array(80);
+
+        for (var offset = 0; offset < bytes.length; offset += 64) {
+          for (var w = 0; w < 16; w += 1) {
+            var p = offset + w * 4;
+            words[w] = ((bytes[p] << 24) | (bytes[p + 1] << 16) | (bytes[p + 2] << 8) | bytes[p + 3]) | 0;
+          }
+
+          for (var next = 16; next < 80; next += 1) {
+            words[next] = rotateLeft(words[next - 3] ^ words[next - 8] ^ words[next - 14] ^ words[next - 16], 1);
+          }
+
+          var a = h0;
+          var b = h1;
+          var c = h2;
+          var d = h3;
+          var e = h4;
+
+          for (var round = 0; round < 80; round += 1) {
+            var f;
+            var k;
+
+            if (round < 20) {
+              f = (b & c) | ((~b) & d);
+              k = 0x5a827999;
+            } else if (round < 40) {
+              f = b ^ c ^ d;
+              k = 0x6ed9eba1;
+            } else if (round < 60) {
+              f = (b & c) | (b & d) | (c & d);
+              k = 0x8f1bbcdc;
+            } else {
+              f = b ^ c ^ d;
+              k = 0xca62c1d6;
+            }
+
+            var temp = (rotateLeft(a, 5) + f + e + k + words[round]) | 0;
+            e = d;
+            d = c;
+            c = rotateLeft(b, 30);
+            b = a;
+            a = temp;
+          }
+
+          h0 = (h0 + a) | 0;
+          h1 = (h1 + b) | 0;
+          h2 = (h2 + c) | 0;
+          h3 = (h3 + d) | 0;
+          h4 = (h4 + e) | 0;
+        }
+
+        var output = [];
+
+        [h0, h1, h2, h3, h4].forEach(function (word) {
+          output.push(
+            (word >>> 24) & 255,
+            (word >>> 16) & 255,
+            (word >>> 8) & 255,
+            word & 255
+          );
+        });
+
+        return output;
+      }
+
+      function hmacSha1(key, message) {
+        var normalized = key.length > 64 ? sha1(key) : key.slice();
+
+        while (normalized.length < 64) {
+          normalized.push(0);
+        }
+
+        var inner = [];
+        var outer = [];
+
+        for (var i = 0; i < 64; i += 1) {
+          inner.push(normalized[i] ^ 0x36);
+          outer.push(normalized[i] ^ 0x5c);
+        }
+
+        return sha1(outer.concat(sha1(inner.concat(message))));
+      }
+
+      function generateTotp(timestamp) {
+        var counter = Math.floor(timestamp / 1000 / state.period);
+        var high = Math.floor(counter / 4294967296);
+        var low = counter >>> 0;
+        var message = [];
+
+        for (var h = 3; h >= 0; h -= 1) {
+          message.push((high >>> (h * 8)) & 255);
+        }
+
+        for (var l = 3; l >= 0; l -= 1) {
+          message.push((low >>> (l * 8)) & 255);
+        }
+
+        var digest = hmacSha1(base32ToBytes(state.secret), message);
+        var offset = digest[digest.length - 1] & 15;
+
+        var binary = (
+          ((digest[offset] & 127) << 24) |
+          (digest[offset + 1] << 16) |
+          (digest[offset + 2] << 8) |
+          digest[offset + 3]
+        ) >>> 0;
+
+        return String(binary % Math.pow(10, state.digits)).padStart(state.digits, "0");
+      }
+
+      function parseInput(raw) {
+        var value = String(raw || "").trim();
+
+        if (!value) {
+          throw new Error("请输入密钥或设置链接");
+        }
+
+        if (value.toLowerCase().indexOf("otpauth://") !== 0) {
+          base32ToBytes(value);
+
+          return {
+            secret: value.toUpperCase().replace(/[\s=-]/g, ""),
+            digits: 6,
+            period: 30
+          };
+        }
+
+        var url;
+
+        try {
+          url = new URL(value);
+        } catch (error) {
+          throw new Error("设置链接格式不正确");
+        }
+
+        if (url.hostname.toLowerCase() !== "totp") {
+          throw new Error("当前仅支持 TOTP 设置链接");
+        }
+
+        var algorithm = String(url.searchParams.get("algorithm") || "SHA1").toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+        if (algorithm !== "SHA1") {
+          throw new Error("当前版本仅支持常用的 SHA-1 验证码");
+        }
+
+        var secret = url.searchParams.get("secret") || "";
+        base32ToBytes(secret);
+
+        var digits = Number(url.searchParams.get("digits") || 6);
+        var period = Number(url.searchParams.get("period") || 30);
+
+        if ([6, 7, 8].indexOf(digits) < 0 || period < 5 || period > 300) {
+          throw new Error("验证码位数或刷新周期无效");
+        }
+
+        return {
+          secret: secret.toUpperCase().replace(/[\s=-]/g, ""),
+          digits: digits,
+          period: period
+        };
+      }
+
+      function getSecretFromUrl() {
+        var hashValue = decodeURIComponent((location.hash || "").slice(1).trim());
+
+        if (hashValue) {
+          return hashValue;
+        }
+
+        var params = new URLSearchParams(location.search);
+        var queryValue = params.get("key") || params.get("secret") || params.get("s");
+
+        if (queryValue) {
+          return queryValue;
+        }
+
+        var pathValue = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, "").trim());
+
+        if (
+          pathValue &&
+          pathValue !== "index.html" &&
+          !pathValue.includes(".") &&
+          /^[A-Za-z2-7=\-\s]+$/.test(pathValue)
+        ) {
+          return pathValue;
+        }
+
+        return "";
+      }
+
+      function isHttpPage() {
+        return location.protocol === "http:" || location.protocol === "https:";
+      }
+
+      function safeUpdateAddress() {
+        if (!state.secret || !isHttpPage()) {
+          return;
+        }
+
+        try {
+          var nextPath = "/" + encodeURIComponent(state.secret.toLowerCase());
+
+          if (location.pathname !== nextPath) {
+            history.replaceState(null, "", nextPath);
+          }
+        } catch (error) {
+          // 本地 file:// 预览或部分内置浏览器可能不允许修改地址栏，忽略即可。
+        }
+      }
+
+      function setupRing() {
+        var ring = $("#timerRing");
+        ring.style.strokeDasharray = ringLength + " " + ringLength;
+        ring.style.strokeDashoffset = "0";
+      }
+
+      function renderPlaceholder() {
+        $("#codeLeft").textContent = "---";
+        $("#codeRight").textContent = "---";
+        $("#countdownNum").textContent = String(state.period);
+        $("#timerRing").style.strokeDashoffset = "0";
+        state.code = "";
+        state.lastCounter = -1;
+      }
+
+      function updateCode() {
+        if (!state.secret) {
+          renderPlaceholder();
+          return;
+        }
+
+        var now = Date.now();
+        var epoch = Math.floor(now / 1000);
+        var cycleMs = state.period * 1000;
+        var remainingMs = cycleMs - (now % cycleMs);
+        var remaining = Math.ceil(remainingMs / 1000);
+        var counter = Math.floor(epoch / state.period);
+        var progress = remainingMs / cycleMs;
+
+        $("#countdownNum").textContent = String(remaining);
+        $("#timerRing").style.strokeDashoffset = String(ringLength * (1 - progress));
+
+        if (counter === state.lastCounter) {
+          return;
+        }
+
+        try {
+          state.code = generateTotp(now);
+          state.lastCounter = counter;
+
+          var midpoint = Math.ceil(state.code.length / 2);
+
+          $("#codeLeft").textContent = state.code.slice(0, midpoint);
+          $("#codeRight").textContent = state.code.slice(midpoint);
+          $("#inlineError").hidden = true;
+        } catch (error) {
+          $("#inlineError").textContent = error.message || "验证码生成失败";
+          $("#inlineError").hidden = false;
+        }
+      }
+
+      function buildLink() {
+        if (!state.secret || !isHttpPage()) {
+          return "";
+        }
+
+        return location.origin + "/" + encodeURIComponent(state.secret.toLowerCase());
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toast.classList.remove("show");
+        }, 1700);
+      }
+
+      function feedback(button, message) {
+        var label = button.querySelector(".button-label");
+
+        if (!label) {
+          return;
+        }
+
+        var old = label.textContent;
+        label.textContent = message;
+
+        setTimeout(function () {
+          label.textContent = old;
+        }, 1500);
+      }
+
+      function copyText(text, button, successMessage) {
+        if (!text) {
+          showToast("请先输入密钥");
+          return;
+        }
+
+        function success() {
+          if (button) {
+            feedback(button, successMessage);
+          }
+
+          showToast(successMessage);
+        }
+
+        function fallback() {
+          var helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.opacity = "0";
+
+          document.body.appendChild(helper);
+          helper.select();
+
+          try {
+            document.execCommand("copy");
+            success();
+          } catch (error) {
+            window.prompt("浏览器未允许自动复制，请手动复制：", text);
+          }
+
+          helper.remove();
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(success).catch(fallback);
+        } else {
+          fallback();
+        }
+      }
+
+      function openModal() {
+        secretInput.value = "";
+        fieldError.hidden = true;
+        modal.classList.add("show");
+
+        setTimeout(function () {
+          secretInput.focus();
+        }, 60);
+      }
+
+      function closeModal() {
+        modal.classList.remove("show");
+      }
+
+      function applySecret(raw, shouldUpdateUrl) {
+        var next = parseInput(raw);
+
+        state.secret = next.secret;
+        state.digits = next.digits;
+        state.period = next.period;
+        state.lastCounter = -1;
+
+        updateCode();
+
+        if (shouldUpdateUrl) {
+          safeUpdateAddress();
+        }
+      }
+
+      $("#copyCode").addEventListener("click", function () {
+        if (!state.code) {
+          showToast("请先输入密钥");
+          return;
+        }
+
+        copyText(state.code, this, "验证码已复制");
+      });
+
+      $("#copyLink").addEventListener("click", function () {
+        if (!isHttpPage()) {
+          showToast("本地预览无法复制完整链接，上传到 Vercel 后即可使用");
+          return;
+        }
+
+        copyText(buildLink(), this, "完整链接已复制");
+      });
+
+      $("#openSecret").addEventListener("click", openModal);
+      $("#closeDialog").addEventListener("click", closeModal);
+      $("#cancelDialog").addEventListener("click", closeModal);
+
+      $("#supportButton").addEventListener("click", function () {
+        copyText("Cedars8", this, "微信已复制");
+      });
+
+      modal.addEventListener("click", function (event) {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      $("#secretForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        try {
+          applySecret(secretInput.value, true);
+          closeModal();
+          showToast("新密钥已生效");
+        } catch (error) {
+          fieldError.textContent = error.message || "无法识别此密钥";
+          fieldError.hidden = false;
+          secretInput.focus();
+        }
+      });
+
+      window.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && modal.classList.contains("show")) {
+          closeModal();
+        }
+      });
+
+      (function init() {
+        setupRing();
+
+        var fromUrl = getSecretFromUrl();
+
+        if (fromUrl) {
+          try {
+            applySecret(fromUrl, true);
+          } catch (error) {
+            renderPlaceholder();
+            $("#inlineError").textContent = error.message || "链接里的密钥格式错误";
+            $("#inlineError").hidden = false;
+            setTimeout(openModal, 150);
+          }
+        } else {
+          renderPlaceholder();
+          setTimeout(openModal, 180);
+        }
+
+        setInterval(updateCode, 250);
+      })();
+    })();
+  </script>
+</body>
+</html>
