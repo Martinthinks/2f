@@ -1,0 +1,4946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#F8FAFC">
+    <meta name="application-name" content="谷歌账号2FA验证器">
+    <title>谷歌账号2FA验证器</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%234F46E5%22/%3E%0A%20%20%3Cpath%20d%3D%22M42%2028h-2v-6c0-5.1-3.9-9-8-9s-8%203.9-8%209v6h-2c-2.2%200-4%201.8-4%204v14c0%202.2%201.8%204%204%204h20c2.2%200%204-1.8%204-4V32c0-2.2-1.8-4-4-4Zm-13%200v-6c0-2.4%201.6-4%203-4s3%201.6%203%204v6h-6Z%22%20fill%3D%22%23fff%22/%3E%0A%20%20%3Ccircle%20cx%3D%2246%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23FBBF24%22%20stroke%3D%22%230F172A%22%20stroke-width%3D%223%22/%3E%0A%3C/svg%3E">
+    <link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%234F46E5%22/%3E%0A%20%20%3Cpath%20d%3D%22M42%2028h-2v-6c0-5.1-3.9-9-8-9s-8%203.9-8%209v6h-2c-2.2%200-4%201.8-4%204v14c0%202.2%201.8%204%204%204h20c2.2%200%204-1.8%204-4V32c0-2.2-1.8-4-4-4Zm-13%200v-6c0-2.4%201.6-4%203-4s3%201.6%203%204v6h-6Z%22%20fill%3D%22%23fff%22/%3E%0A%20%20%3Ccircle%20cx%3D%2246%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23FBBF24%22%20stroke%3D%22%230F172A%22%20stroke-width%3D%223%22/%3E%0A%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #D946EF;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --border-val: #E2E8F0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+        html, body { min-height: 100%; }
+
+        body {
+            background-color: #F8FAFC;
+            color: var(--text-main);
+            font-family: 'Outfit', -apple-system, sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex; justify-content: center; align-items: center;
+            overflow-x: hidden; position: relative;
+        }
+
+        /* 高级双层科技网格背景 */
+        .advanced-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-image: 
+                linear-gradient(to right, rgba(79, 70, 229, 0.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(79, 70, 229, 0.06) 1px, transparent 1px),
+                linear-gradient(to right, rgba(79, 70, 229, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(79, 70, 229, 0.02) 1px, transparent 1px);
+            pointer-events: none;
+        }
+
+        /* 主面板（等宽等高黄金开阔比例） */
+        main {
+            position: relative; z-index: 10; 
+            width: 92%; max-width: 880px; min-height: 680px; 
+            background: #FFFFFF; border: 1px solid var(--border-val); border-radius: 32px; 
+            padding: 64px 80px; box-shadow: 0 40px 100px -20px rgba(15, 23, 42, 0.06);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 40px 0;
+        }
+
+        /* 四角卡扣科技装饰 */
+        .corner-deco { position: absolute; width: 14px; height: 14px; border: 2px solid #CBD5E1; }
+        .corner-tl { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+        .corner-tr { top: 24px; right: 24px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 24px; left: 24px; border-right: none; border-top: none; }
+        .corner-br { bottom: 24px; right: 24px; border-left: none; border-top: none; }
+
+        /* 🦁 扒边小狮子 */
+        .privacy-mascot {
+            position: absolute; right: -82px; top: 40%;
+            width: 100px; height: 140px; z-index: -1; cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        main:hover .privacy-mascot { transform: translate(-30px, -20%) rotate(8deg); }
+
+        .brand-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(79, 70, 229, 0.06); border: 1px solid rgba(79, 70, 229, 0.15);
+            padding: 6px 16px; border-radius: 100px;
+            color: var(--primary); font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 20px;
+        }
+
+        /* 渐变标题 */
+        h1 { 
+            font-weight: 900; font-size: 42px; letter-spacing: -0.5px; margin-bottom: 12px; 
+            background: linear-gradient(135deg, #0F172A 0%, #4F46E5 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { font-size: 15px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 40px; font-weight: 500; }
+
+        /* 验证码数字 */
+        .code-display {
+            font-family: 'Space Grotesk', monospace; font-size: 114px; font-weight: 700; line-height: 1; letter-spacing: 10px;
+            margin-bottom: 32px; display: flex; gap: 24px; color: var(--text-main);
+        }
+
+        /* 嵌套同步倒计时 */
+        .timer-widget { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 48px; }
+        .timer-ring-wrapper { position: relative; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; }
+        .timer-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); width: 36px; height: 36px; }
+        .timer-ring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+        .timer-ring .ring-bg { stroke: #E2E8F0; }
+        .timer-ring .ring-fill { stroke: var(--secondary); transition: stroke-dashoffset 1s linear; }
+        .timer-number { position: relative; z-index: 2; font-size: 14px; font-weight: 900; color: var(--secondary); font-family: 'Space Grotesk', monospace; }
+        .timer-label { font-size: 15px; color: var(--text-muted); font-weight: 600; }
+
+        /* --- 🛠️ 升级：美式大方齐宽的布局系统 --- */
+        .action-layout-container { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 56px; }
+
+        /* 大方的主复制按钮 */
+        .btn-primary-centered {
+            width: 100%; max-width: 420px; height: 64px;
+            background: linear-gradient(90deg, #8B5CF6, #D946EF);
+            color: #FFFFFF; border: none; border-radius: 100px;
+            font-size: 16px; font-weight: 700; letter-spacing: 1px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 12px;
+            box-shadow: 0 12px 24px -8px rgba(217, 70, 239, 0.4);
+            transition: all 0.3s ease; margin-bottom: 16px;
+        }
+        .btn-primary-centered:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -8px rgba(217, 70, 239, 0.5); }
+
+        /* 已优化：完美与主按钮同齐同宽的次级椭圆按钮 */
+        .secondary-actions-group { display: flex; gap: 16px; justify-content: center; width: 100%; max-width: 420px; }
+        
+        .btn-secondary {
+            flex: 1; height: 56px; /* 👈 大尺寸方便点击 */
+            background: rgba(15, 23, 42, 0.03); border: 1px solid var(--border-val); border-radius: 100px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-secondary span {
+            font-size: 14px; font-weight: 800;
+            background: linear-gradient(135deg, #0F172A 0%, #4F46E5 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .btn-secondary svg { width: 18px; height: 18px; color: #4F46E5; }
+        .btn-secondary:hover { background: #FFFFFF; border-color: #A5B4FC; transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.1); }
+
+        /* --- 🎨 升级：一体化横向非对称切割信息底板（美式高级风） --- */
+        .premium-info-dashboard {
+            display: flex; width: 100%; background: #FFFFFF;
+            border: 1px solid var(--border-val); border-radius: 24px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.02); overflow: hidden;
+        }
+        
+        /* 左侧：支持面板 (占比 46%) */
+        .dash-section-help {
+            flex: 46; padding: 36px 40px;
+            background: linear-gradient(135deg, #FFFFFF 60%, #EFF6FF 100%);
+            border-right: 1px solid var(--border-val); /* 中央切割线 */
+        }
+        
+        /* 右侧：安全面板 (占比 54%) */
+        .dash-section-alert {
+            flex: 54; padding: 36px 40px;
+            background: linear-gradient(135deg, #FFFFFF 60%, #FEF2F2 100%);
+        }
+
+        .dash-title { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; margin-bottom: 14px; }
+        .dash-title svg { width: 22px; height: 22px; flex-shrink: 0; }
+        .dash-section-help .dash-title { color: #2563EB; }
+        .dash-section-alert .dash-title { color: #DC2626; }
+        
+        .dash-content { font-size: 14px; color: var(--text-muted); line-height: 1.6; font-weight: 500; }
+
+        /* 精致的绿灯指示客服徽章 */
+        .wechat-pill-badge {
+            display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 20px;
+            background: #FFFFFF; border: 1px solid #BFDBFE; border-radius: 100px;
+            color: #1D4ED8; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.04);
+        }
+        .wechat-pill-badge:hover { background: #DBEAFE; transform: scale(1.02); }
+        
+        .status-pulse-dot {
+            width: 8px; height: 8px; background-color: #10B981; border-radius: 50%; 
+            box-shadow: 0 0 8px #10B981; animation: greenGlow 2s infinite;
+        }
+        @keyframes greenGlow {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .alert-highlight-tag { color: #DC2626; font-weight: 800; background: #FFFFFF; border: 1px solid #FECACA; padding: 2px 6px; border-radius: 6px; margin: 0 2px; }
+
+        /* 模态弹窗 */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .modal-box {
+            background: #FFFFFF; border-radius: 24px; padding: 40px; width: 90%; max-width: 460px; text-align: left; 
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.3); animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+        .modal-title-group { display: flex; align-items: center; gap: 16px; }
+        .modal-icon { width: 48px; height: 48px; background: #EEF2FF; color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .modal-title-text h3 { font-size: 20px; font-weight: 900; color: var(--text-main); }
+        .modal-subtitle { font-size: 11px; color: var(--primary); font-weight: 700; letter-spacing: 0.5px; }
+        .modal-close-btn { background: none; border: 1px solid var(--border-val); border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; color: var(--text-muted); cursor: pointer; }
+
+        .modal-body label { display: block; font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
+        .modal-textarea { width: 100%; height: 110px; resize: none; padding: 16px; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 16px; color: var(--text-main); font-family: 'Space Grotesk', monospace; font-size: 15px; font-weight: 600; outline: none; }
+        .modal-textarea:focus { border-color: var(--primary); background: #FFFFFF; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+        .modal-helper { font-size: 13px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+
+        .modal-btns { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+        .modal-btns button { width: 100%; padding: 16px; border: none; border-radius: 100px; font-weight: 800; font-size: 16px; cursor: pointer; }
+        .btn-save { background: linear-gradient(90deg, #4F46E5, #7C3AED); color: #FFF; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.3); }
+        .btn-cancel { background: #F1F5F9; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            main { padding: 40px 20px; width: 94%; min-height: auto; margin: 20px auto; }
+            h1 { font-size: 32px; }
+            .code-display { font-size: 76px; letter-spacing: 4px; gap: 16px; margin-bottom: 24px;}
+            .privacy-mascot, .corner-deco { display: none; }
+            .secondary-actions-group { flex-direction: column; width: 100%; }
+            .btn-secondary { width: 100%; }
+            .premium-info-dashboard { flex-direction: column; }
+            .dash-section-help { border-right: none; border-bottom: 1px solid var(--border-val); }
+            .modal-box { padding: 24px; }
+        }
+
+        /* =========================================
+           V50 历史细节整合：真实 2FA + 干净按钮 + 移动端优化
+           ========================================= */
+        .code-display {
+            justify-content: center;
+            align-items: center;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+        }
+
+        .code-display span {
+            min-width: 3ch;
+            text-align: center;
+        }
+
+        .inline-error {
+            min-height: 18px;
+            margin: -30px 0 32px;
+            color: #DC2626;
+            font-size: 13px;
+            line-height: 1.45;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .timer-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            white-space: nowrap;
+            letter-spacing: -0.3px;
+        }
+
+        .timer-label {
+            white-space: nowrap;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .btn-primary-centered,
+        .btn-secondary,
+        .wechat-pill-badge,
+        .btn-save,
+        .btn-cancel {
+            outline: none;
+            box-shadow: none !important;
+        }
+
+        .btn-primary-centered {
+            border: none !important;
+            border-radius: 999px !important;
+            background: linear-gradient(90deg, #4F46E5, #7C3AED) !important;
+        }
+
+        .btn-primary-centered:hover {
+            transform: translateY(-1px);
+            box-shadow: none !important;
+            background: linear-gradient(90deg, #4338CA, #6D28D9) !important;
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--border-val) !important;
+            border-radius: 999px !important;
+            background: rgba(15, 23, 42, 0.03) !important;
+            box-shadow: none !important;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            border-color: #CBD5E1 !important;
+            background: #F8FAFC !important;
+            box-shadow: none !important;
+        }
+
+        .wechat-pill-badge {
+            border: 1px solid #BFDBFE !important;
+            border-radius: 999px !important;
+            box-shadow: none !important;
+        }
+
+        .wechat-pill-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: none !important;
+        }
+
+        .status-pulse-dot,
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10B981;
+            animation: greenGlow 2s infinite;
+            flex: none;
+        }
+
+        .modal-overlay.show,
+        .modal-overlay.active {
+            display: flex !important;
+        }
+
+        .modal-overlay {
+            padding: 18px;
+        }
+
+        .modal-box {
+            border: 1px solid var(--border-val) !important;
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12) !important;
+        }
+
+        .modal-error {
+            min-height: 18px;
+            margin: 10px 0 0;
+            color: #DC2626;
+            font-size: 13px;
+            line-height: 1.45;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .modal-btns button {
+            border-radius: 999px !important;
+            box-shadow: none !important;
+        }
+
+        .btn-save {
+            background: linear-gradient(90deg, #4F46E5, #7C3AED) !important;
+        }
+
+        .modal-close-btn {
+            box-shadow: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: max(32px, env(safe-area-inset-bottom));
+            z-index: 100000;
+            transform: translateX(-50%) translateY(14px);
+            opacity: 0;
+            pointer-events: none;
+            min-height: 42px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            border-radius: 100px;
+            background: rgba(15, 23, 42, 0.94);
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            transition: 0.2s ease;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+                padding: 16px;
+            }
+
+            main {
+                width: 94%;
+                min-height: auto;
+                margin: 20px auto;
+                padding: 40px 20px;
+                border-radius: 24px;
+            }
+
+            h1 {
+                font-size: 32px;
+                text-align: center;
+            }
+
+            .subtitle {
+                text-align: center;
+            }
+
+            .code-display {
+                font-size: 76px;
+                letter-spacing: 4px;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+
+            .timer-widget {
+                margin-bottom: 32px;
+                gap: 8px;
+            }
+
+            .timer-number {
+                font-size: 13px;
+            }
+
+            .timer-label {
+                font-size: 13px;
+            }
+
+            .action-layout-container {
+                margin-bottom: 36px;
+            }
+
+            .btn-primary-centered {
+                max-width: 100%;
+                height: 64px;
+                margin-bottom: 14px;
+            }
+
+            .secondary-actions-group {
+                flex-direction: column;
+                width: 100%;
+                max-width: 100%;
+                gap: 14px;
+            }
+
+            .btn-secondary {
+                width: 100%;
+                height: 58px;
+                flex: none;
+            }
+
+            .btn-secondary span {
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+            .premium-info-dashboard {
+                flex-direction: column;
+            }
+
+            .dash-section-help {
+                border-right: none;
+                border-bottom: 1px solid var(--border-val);
+            }
+
+            .privacy-mascot,
+            .corner-deco {
+                display: none;
+            }
+
+            .modal-box {
+                padding: 24px;
+                width: min(92vw, 460px);
+            }
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 10px;
+            }
+
+            main {
+                width: 100%;
+                padding: 34px 18px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .subtitle {
+                font-size: 12px;
+                margin-bottom: 32px;
+            }
+
+            .code-display {
+                font-size: clamp(54px, 17vw, 68px);
+                letter-spacing: 2px;
+                gap: 10px;
+            }
+
+            .timer-label {
+                font-size: 12.5px;
+            }
+
+            .timer-number {
+                font-size: 12px;
+            }
+
+            .btn-primary-centered {
+                height: 62px;
+                font-size: 15px;
+            }
+
+            .btn-secondary {
+                height: 56px;
+            }
+
+            .dash-section-help,
+            .dash-section-alert {
+                padding: 26px 20px;
+            }
+        }
+
+
+        /* =========================================
+           V51 高级工具条 + 安全支持面板
+           ========================================= */
+        .action-layout-v51 {
+            margin-bottom: 46px !important;
+        }
+
+        .btn-primary-centered {
+            width: 100% !important;
+            max-width: 420px !important;
+            height: 64px !important;
+            border: none !important;
+            border-radius: 999px !important;
+            background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%) !important;
+            box-shadow: 0 18px 42px -30px rgba(79, 70, 229, 0.55) !important;
+        }
+
+        .btn-primary-centered:hover,
+        .btn-primary-centered:active {
+            box-shadow: 0 18px 42px -30px rgba(79, 70, 229, 0.55) !important;
+            transform: translateY(-1px);
+        }
+
+        .utility-dock {
+            width: 100%;
+            max-width: 420px;
+            height: 58px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 999px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.88), rgba(248,250,252,0.92));
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.85),
+                0 14px 34px -30px rgba(15, 23, 42, 0.45);
+            padding: 4px;
+            overflow: hidden;
+        }
+
+        .utility-action {
+            height: 100%;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            color: #334155;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        }
+
+        .utility-action:hover {
+            background: rgba(79, 70, 229, 0.07);
+            color: #312E81;
+            transform: none;
+        }
+
+        .utility-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #4F46E5;
+            background: rgba(79, 70, 229, 0.08);
+            flex: none;
+        }
+
+        .utility-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .utility-divider {
+            width: 1px;
+            height: 28px;
+            background: linear-gradient(180deg, transparent, #D8E0EC, transparent);
+        }
+
+        .trust-panel {
+            width: 100%;
+            border: 1px solid rgba(226, 232, 240, 0.98);
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at 8% 8%, rgba(79, 70, 229, 0.07), transparent 34%),
+                radial-gradient(circle at 92% 18%, rgba(16, 185, 129, 0.07), transparent 36%),
+                linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                0 22px 70px -52px rgba(15, 23, 42, 0.42);
+            overflow: hidden;
+        }
+
+        .trust-panel-head {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 24px 30px 18px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+        }
+
+        .trust-kicker {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 1.6px;
+            color: #6366F1;
+            margin-bottom: 6px;
+        }
+
+        .trust-title {
+            font-size: 19px;
+            font-weight: 900;
+            letter-spacing: -0.2px;
+            color: #0F172A;
+        }
+
+        .trust-status {
+            height: 34px;
+            padding: 0 14px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #FFFFFF;
+            border: 1px solid #DDE7F4;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: stretch;
+        }
+
+        .trust-item {
+            min-height: 178px;
+            padding: 30px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .trust-divider {
+            width: 1px;
+            margin: 28px 0;
+            background: linear-gradient(180deg, transparent, #DDE5F0, transparent);
+        }
+
+        .trust-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: none;
+        }
+
+        .trust-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .support-icon {
+            color: #2563EB;
+            background: linear-gradient(180deg, #EFF6FF, #E0F2FE);
+            border: 1px solid #BFDBFE;
+        }
+
+        .security-icon {
+            color: #0F766E;
+            background: linear-gradient(180deg, #ECFDF5, #E0F2FE);
+            border: 1px solid #A7F3D0;
+        }
+
+        .trust-copy-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: #0F172A;
+            margin-bottom: 8px;
+        }
+
+        .trust-copy p {
+            margin: 0;
+            color: #64748B;
+            font-size: 14px;
+            line-height: 1.7;
+            font-weight: 600;
+        }
+
+        .support-chip {
+            margin-top: 14px;
+            height: 40px;
+            padding: 0 10px 0 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            border: 1px solid #D6E3F3;
+            background: rgba(255,255,255,0.9);
+            color: #1D4ED8;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: none;
+            transition: border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .support-chip:hover {
+            background: #FFFFFF;
+            border-color: #BBD0EC;
+        }
+
+        .chip-hint {
+            color: #94A3B8;
+            font-size: 12px;
+            font-weight: 800;
+            padding-left: 4px;
+        }
+
+        .soft-tag {
+            display: inline-flex;
+            align-items: center;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 8px;
+            background: rgba(79, 70, 229, 0.08);
+            color: #4F46E5;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .security-footnote {
+            margin-top: 12px;
+            color: #94A3B8;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .wechat-pill-badge,
+        .dash-section-help,
+        .dash-section-alert,
+        .premium-info-dashboard {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .action-layout-v51 {
+                margin-bottom: 32px !important;
+            }
+
+            .btn-primary-centered {
+                max-width: 100% !important;
+                height: 62px !important;
+                margin-bottom: 14px !important;
+            }
+
+            .utility-dock {
+                max-width: 100%;
+                height: auto;
+                min-height: 116px;
+                grid-template-columns: 1fr;
+                gap: 0;
+                padding: 6px;
+                border-radius: 26px;
+            }
+
+            .utility-action {
+                min-height: 52px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .utility-divider {
+                width: calc(100% - 34px);
+                height: 1px;
+                margin: 0 auto;
+                background: linear-gradient(90deg, transparent, #D8E0EC, transparent);
+            }
+
+            .trust-panel-head {
+                padding: 22px 22px 16px;
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .trust-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-divider {
+                width: calc(100% - 44px);
+                height: 1px;
+                margin: 0 auto;
+                background: linear-gradient(90deg, transparent, #DDE5F0, transparent);
+            }
+
+            .trust-item {
+                min-height: auto;
+                padding: 24px 22px;
+            }
+
+            .chip-hint {
+                display: none;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .utility-dock {
+                min-height: 110px;
+            }
+
+            .utility-action {
+                min-height: 50px;
+                font-size: 14px;
+            }
+
+            .trust-title {
+                font-size: 18px;
+            }
+
+            .trust-copy p {
+                font-size: 13.5px;
+            }
+
+            .trust-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 14px;
+            }
+        }
+
+
+        /* =========================================
+           V52 倒计时短胶囊：与底部安全支持面板统一的渐变玻璃效果
+           ========================================= */
+        .timer-widget {
+            width: auto !important;
+            max-width: 320px !important;
+            min-height: 52px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            margin-bottom: 38px !important;
+            padding: 7px 16px 7px 8px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 12px !important;
+            border-radius: 999px !important;
+            border: 1px solid rgba(214, 227, 243, 0.95) !important;
+            background:
+                radial-gradient(circle at 12% 45%, rgba(34, 211, 238, 0.18), transparent 44%),
+                radial-gradient(circle at 88% 25%, rgba(99, 102, 241, 0.10), transparent 46%),
+                linear-gradient(90deg, rgba(236, 253, 255, 0.96) 0%, rgba(248, 250, 252, 0.96) 58%, rgba(255, 255, 255, 0.98) 100%) !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.95),
+                0 18px 46px -36px rgba(15, 23, 42, 0.38) !important;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .timer-ring-wrapper {
+            width: 38px !important;
+            height: 38px !important;
+            flex: 0 0 38px !important;
+            border-radius: 999px !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 10px 22px -18px rgba(15, 23, 42, 0.5) !important;
+        }
+
+        .timer-ring {
+            width: 38px !important;
+            height: 38px !important;
+        }
+
+        .timer-ring circle {
+            stroke-width: 4 !important;
+        }
+
+        .timer-ring .ring-bg {
+            stroke: #E4EBF3 !important;
+        }
+
+        .timer-ring .ring-fill {
+            stroke: #22D3EE !important;
+            filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.22));
+        }
+
+        .timer-number {
+            color: #06B6D4 !important;
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.35px !important;
+            line-height: 1 !important;
+        }
+
+        .timer-label {
+            color: #64748B !important;
+            font-size: 14px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.1px !important;
+            white-space: nowrap !important;
+        }
+
+        @media (max-width: 768px) {
+            .timer-widget {
+                max-width: 300px !important;
+                min-height: 50px !important;
+                margin-bottom: 32px !important;
+                padding: 7px 14px 7px 8px !important;
+                gap: 10px !important;
+            }
+
+            .timer-ring-wrapper {
+                width: 36px !important;
+                height: 36px !important;
+                flex-basis: 36px !important;
+            }
+
+            .timer-ring {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            .timer-number {
+                font-size: 13px !important;
+            }
+
+            .timer-label {
+                font-size: 13px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .timer-widget {
+                max-width: 284px !important;
+                min-height: 48px !important;
+                margin-bottom: 30px !important;
+                padding-right: 12px !important;
+                gap: 8px !important;
+            }
+
+            .timer-ring-wrapper {
+                width: 34px !important;
+                height: 34px !important;
+                flex-basis: 34px !important;
+            }
+
+            .timer-ring {
+                width: 34px !important;
+                height: 34px !important;
+            }
+
+            .timer-number {
+                font-size: 12px !important;
+            }
+
+            .timer-label {
+                font-size: 12.5px !important;
+            }
+        }
+
+
+        /* =========================================
+           V53 底部 Support & Security 面板平衡优化
+           - 删除重复在线支持状态
+           - 在线状态合并到 Cedars8
+           - 手机端放大 Cedars8
+           - 电脑端左右模块更均衡
+           ========================================= */
+
+        .trust-panel-head {
+            min-height: 92px !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            padding: 28px 36px 22px !important;
+        }
+
+        .trust-panel-head > div:first-child {
+            width: 100%;
+        }
+
+        .trust-kicker {
+            font-size: 12px !important;
+            letter-spacing: 1.8px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .trust-title {
+            font-size: 22px !important;
+            line-height: 1.25 !important;
+            letter-spacing: -0.35px !important;
+        }
+
+        .trust-status {
+            display: none !important;
+        }
+
+        .trust-grid {
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+            align-items: stretch !important;
+        }
+
+        .trust-item {
+            min-height: 190px !important;
+            padding: 34px 36px !important;
+            display: grid !important;
+            grid-template-columns: 48px minmax(0, 1fr) !important;
+            column-gap: 18px !important;
+            align-items: flex-start !important;
+        }
+
+        .trust-icon {
+            width: 48px !important;
+            height: 48px !important;
+            border-radius: 17px !important;
+        }
+
+        .trust-icon svg {
+            width: 23px !important;
+            height: 23px !important;
+        }
+
+        .trust-copy-title {
+            font-size: 17px !important;
+            margin-bottom: 9px !important;
+            line-height: 1.25 !important;
+        }
+
+        .trust-copy p {
+            max-width: 360px;
+            font-size: 14.5px !important;
+            line-height: 1.75 !important;
+            font-weight: 650 !important;
+        }
+
+        .support-chip {
+            height: 46px !important;
+            min-width: 172px !important;
+            margin-top: 16px !important;
+            padding: 0 16px 0 18px !important;
+            gap: 9px !important;
+            border-radius: 999px !important;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96)) !important;
+            border: 1px solid #D7E3F2 !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.9),
+                0 14px 32px -28px rgba(15,23,42,0.35) !important;
+        }
+
+        .support-chip .button-label {
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.1px !important;
+            color: #1D4ED8 !important;
+        }
+
+        .chip-hint {
+            font-size: 12px !important;
+            color: #94A3B8 !important;
+            font-weight: 850 !important;
+            padding-left: 4px !important;
+        }
+
+        .status-pulse-dot {
+            width: 9px !important;
+            height: 9px !important;
+            box-shadow: 0 0 8px rgba(16,185,129,0.55) !important;
+        }
+
+        .security-footnote {
+            margin-top: 14px !important;
+            font-size: 12.5px !important;
+            line-height: 1.55 !important;
+        }
+
+        .soft-tag {
+            height: 25px !important;
+            padding: 0 9px !important;
+            border-radius: 9px !important;
+            background: linear-gradient(180deg, rgba(99,102,241,0.12), rgba(99,102,241,0.08)) !important;
+            color: #4F46E5 !important;
+            white-space: nowrap !important;
+        }
+
+        @media (min-width: 769px) {
+            .support-item .trust-copy,
+            .security-item .trust-copy {
+                padding-top: 2px;
+            }
+
+            .support-item {
+                padding-right: 34px !important;
+            }
+
+            .security-item {
+                padding-left: 34px !important;
+            }
+
+            .security-item .trust-copy p {
+                max-width: 390px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .trust-panel-head {
+                min-height: auto !important;
+                padding: 24px 24px 18px !important;
+                align-items: flex-start !important;
+            }
+
+            .trust-kicker {
+                font-size: 11.5px !important;
+                letter-spacing: 1.65px !important;
+            }
+
+            .trust-title {
+                font-size: 22px !important;
+            }
+
+            .trust-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .trust-item {
+                min-height: auto !important;
+                padding: 28px 24px !important;
+                grid-template-columns: 48px minmax(0, 1fr) !important;
+                column-gap: 18px !important;
+            }
+
+            .trust-divider {
+                width: calc(100% - 48px) !important;
+                height: 1px !important;
+                margin: 0 auto !important;
+                background: linear-gradient(90deg, transparent, #DDE5F0, transparent) !important;
+            }
+
+            .trust-copy-title {
+                font-size: 19px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .trust-copy p {
+                max-width: 100% !important;
+                font-size: 15.5px !important;
+                line-height: 1.72 !important;
+            }
+
+            .support-chip {
+                height: 50px !important;
+                min-width: 190px !important;
+                padding: 0 18px 0 20px !important;
+                margin-top: 18px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 18px !important;
+            }
+
+            .chip-hint {
+                display: inline !important;
+                font-size: 13px !important;
+            }
+
+            .security-footnote {
+                font-size: 13.5px !important;
+                margin-top: 14px !important;
+            }
+
+            .soft-tag {
+                height: 27px !important;
+                padding: 0 10px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .trust-panel-head {
+                padding: 22px 22px 16px !important;
+            }
+
+            .trust-title {
+                font-size: 21px !important;
+            }
+
+            .trust-item {
+                padding: 26px 22px !important;
+                grid-template-columns: 44px minmax(0, 1fr) !important;
+                column-gap: 16px !important;
+            }
+
+            .trust-icon {
+                width: 44px !important;
+                height: 44px !important;
+                border-radius: 15px !important;
+            }
+
+            .trust-copy-title {
+                font-size: 18px !important;
+            }
+
+            .trust-copy p {
+                font-size: 15px !important;
+            }
+
+            .support-chip {
+                height: 48px !important;
+                min-width: 176px !important;
+                padding: 0 16px 0 18px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 17px !important;
+            }
+
+            .chip-hint {
+                font-size: 12px !important;
+            }
+        }
+
+
+        /* =========================================
+           V56 字体稳定 + Toast 上移 + 全站按钮灵动动效
+           ========================================= */
+
+        /* 验证码数字：使用本地系统字体，避免外部字体加载前后跳变 */
+        .code-display,
+        .code-display span {
+            font-family:
+                ui-sans-serif,
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "SF Pro Text",
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif !important;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1, "case" 1;
+            font-synthesis: none !important;
+            text-rendering: geometricPrecision;
+        }
+
+        /* 保留验证码主体感，不缩小 */
+        .code-display {
+            font-size: clamp(112px, 12.4vw, 148px) !important;
+            line-height: 0.96 !important;
+            font-weight: 820 !important;
+            letter-spacing: 0.058em !important;
+            margin-top: 54px !important;
+            margin-bottom: 42px !important;
+            transform: translateZ(0);
+            will-change: contents;
+        }
+
+        .code-display span {
+            min-width: 3ch !important;
+            text-align: center !important;
+            transform: translateZ(0);
+            will-change: transform, opacity;
+        }
+
+        .code-display.code-refreshing span {
+            animation: digitSoftRefresh 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes digitSoftRefresh {
+            0% {
+                opacity: 0.72;
+                transform: translateY(3px) scale(0.992);
+                filter: blur(0.35px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        /* Toast：桌面保持底部；手机端上移，避免被浏览器底栏遮挡 */
+        .toast {
+            left: 50% !important;
+            right: auto !important;
+            bottom: max(32px, env(safe-area-inset-bottom)) !important;
+            top: auto !important;
+            z-index: 100000 !important;
+            transform: translateX(-50%) translateY(14px) !important;
+            min-height: 46px !important;
+            padding: 0 18px !important;
+            border-radius: 999px !important;
+            font-size: 14px !important;
+            font-weight: 850 !important;
+            letter-spacing: 0.2px !important;
+            background:
+                linear-gradient(180deg, rgba(15,23,42,0.96), rgba(15,23,42,0.92)) !important;
+            box-shadow:
+                0 18px 42px rgba(15, 23, 42, 0.20),
+                inset 0 1px 0 rgba(255,255,255,0.08) !important;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0) !important;
+        }
+
+        /* 所有按钮统一灵动反馈 */
+        button,
+        .utility-action,
+        .support-chip,
+        .btn-primary-centered,
+        .btn-secondary,
+        .wechat-pill-badge,
+        .wechat-badge,
+        .btn-save,
+        .btn-cancel,
+        .modal-close-btn {
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            transition:
+                transform 0.22s cubic-bezier(0.2, 0.9, 0.2, 1),
+                background 0.24s ease,
+                border-color 0.24s ease,
+                box-shadow 0.24s ease,
+                opacity 0.24s ease,
+                filter 0.24s ease !important;
+        }
+
+        button::after,
+        .utility-action::after,
+        .support-chip::after,
+        .btn-primary-centered::after,
+        .btn-secondary::after,
+        .wechat-pill-badge::after,
+        .wechat-badge::after,
+        .btn-save::after,
+        .btn-cancel::after,
+        .modal-close-btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.72);
+            background:
+                radial-gradient(
+                    circle at var(--tap-x, 50%) var(--tap-y, 50%),
+                    rgba(255, 255, 255, 0.46) 0%,
+                    rgba(255, 255, 255, 0.22) 22%,
+                    rgba(99, 102, 241, 0.13) 38%,
+                    transparent 68%
+                );
+            transition:
+                opacity 0.34s ease,
+                transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-secondary::after,
+        .utility-action::after,
+        .support-chip::after,
+        .wechat-pill-badge::after,
+        .wechat-badge::after,
+        .btn-cancel::after,
+        .modal-close-btn::after {
+            background:
+                radial-gradient(
+                    circle at var(--tap-x, 50%) var(--tap-y, 50%),
+                    rgba(99, 102, 241, 0.17) 0%,
+                    rgba(99, 102, 241, 0.10) 32%,
+                    rgba(34, 211, 238, 0.08) 48%,
+                    transparent 72%
+                );
+        }
+
+        button.is-pressing::after,
+        .utility-action.is-pressing::after,
+        .support-chip.is-pressing::after,
+        .btn-primary-centered.is-pressing::after,
+        .btn-secondary.is-pressing::after,
+        .wechat-pill-badge.is-pressing::after,
+        .wechat-badge.is-pressing::after,
+        .btn-save.is-pressing::after,
+        .btn-cancel.is-pressing::after,
+        .modal-close-btn.is-pressing::after {
+            opacity: 1;
+            transform: scale(1.18);
+            transition: opacity 0.06s ease, transform 0.06s ease;
+        }
+
+        button.is-pressing,
+        .utility-action.is-pressing,
+        .support-chip.is-pressing,
+        .btn-primary-centered.is-pressing,
+        .btn-secondary.is-pressing,
+        .wechat-pill-badge.is-pressing,
+        .wechat-badge.is-pressing,
+        .btn-save.is-pressing,
+        .btn-cancel.is-pressing,
+        .modal-close-btn.is-pressing {
+            transform: translateY(1px) scale(0.985) !important;
+            filter: saturate(1.04);
+        }
+
+        .btn-primary-centered.is-pressing,
+        .btn-save.is-pressing {
+            box-shadow: 0 10px 28px -24px rgba(79, 70, 229, 0.65) !important;
+        }
+
+        .utility-action.is-pressing,
+        .btn-secondary.is-pressing,
+        .support-chip.is-pressing,
+        .wechat-pill-badge.is-pressing,
+        .wechat-badge.is-pressing,
+        .btn-cancel.is-pressing {
+            background-color: rgba(79, 70, 229, 0.075) !important;
+        }
+
+        @media (hover: hover) {
+            .btn-primary-centered:hover,
+            .btn-save:hover {
+                transform: translateY(-1.5px);
+                filter: saturate(1.05) brightness(1.01);
+            }
+
+            .utility-action:hover,
+            .btn-secondary:hover,
+            .support-chip:hover,
+            .wechat-pill-badge:hover,
+            .wechat-badge:hover,
+            .btn-cancel:hover {
+                transform: translateY(-1px);
+                filter: saturate(1.03);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .code-display {
+                font-size: clamp(104px, 13vw, 136px) !important;
+                margin-top: 48px !important;
+                margin-bottom: 40px !important;
+                letter-spacing: 0.052em !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .code-display {
+                font-size: clamp(82px, 21vw, 104px) !important;
+                line-height: 0.98 !important;
+                letter-spacing: 0.034em !important;
+                gap: 12px !important;
+                margin-top: 42px !important;
+                margin-bottom: 34px !important;
+            }
+
+            .toast {
+                top: auto !important;
+                bottom: max(132px, calc(env(safe-area-inset-bottom) + 118px)) !important;
+                min-height: 48px !important;
+                padding: 0 20px !important;
+                font-size: 15px !important;
+                max-width: calc(100vw - 42px) !important;
+                white-space: nowrap !important;
+            }
+
+            button.is-pressing,
+            .utility-action.is-pressing,
+            .support-chip.is-pressing,
+            .btn-primary-centered.is-pressing,
+            .btn-secondary.is-pressing,
+            .wechat-pill-badge.is-pressing,
+            .wechat-badge.is-pressing,
+            .btn-save.is-pressing,
+            .btn-cancel.is-pressing,
+            .modal-close-btn.is-pressing {
+                transform: scale(0.987) !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .code-display {
+                font-size: clamp(76px, 20.5vw, 96px) !important;
+                letter-spacing: 0.024em !important;
+                gap: 8px !important;
+                margin-top: 38px !important;
+                margin-bottom: 32px !important;
+            }
+
+            .toast {
+                bottom: max(142px, calc(env(safe-area-inset-bottom) + 126px)) !important;
+                font-size: 15px !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .code-display {
+                font-size: clamp(68px, 19.5vw, 84px) !important;
+                letter-spacing: 0.018em !important;
+                gap: 6px !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .code-display.code-refreshing span,
+            button,
+            button::after,
+            .utility-action,
+            .utility-action::after,
+            .support-chip,
+            .support-chip::after,
+            .btn-primary-centered,
+            .btn-primary-centered::after,
+            .btn-secondary,
+            .btn-secondary::after,
+            .wechat-pill-badge,
+            .wechat-pill-badge::after,
+            .wechat-badge,
+            .wechat-badge::after,
+            .btn-save,
+            .btn-save::after,
+            .btn-cancel,
+            .btn-cancel::after,
+            .modal-close-btn,
+            .modal-close-btn::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+
+        /* =========================================
+           V63 Light Premium Code Display
+           取消深色面板 / 取消数字卡片，回到浅色高级工具风格
+           ========================================= */
+
+        main {
+            padding-top: 56px !important;
+        }
+
+        .code-display {
+            position: relative !important;
+            isolation: isolate !important;
+            width: min(100%, 700px) !important;
+            margin: 34px auto 32px !important;
+            padding: 36px 34px 30px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: clamp(22px, 3.2vw, 42px) !important;
+            border-radius: 42px !important;
+            border: 1px solid rgba(226, 232, 240, 0.78) !important;
+            background:
+                radial-gradient(circle at 18% 28%, rgba(79, 70, 229, 0.075), transparent 34%),
+                radial-gradient(circle at 82% 30%, rgba(34, 211, 238, 0.07), transparent 34%),
+                linear-gradient(180deg, rgba(255,255,255,0.86), rgba(248,250,252,0.48)) !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.92),
+                0 30px 70px -62px rgba(15, 23, 42, 0.50) !important;
+            overflow: visible !important;
+            font-family:
+                ui-sans-serif,
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Display",
+                "SF Pro Text",
+                "Segoe UI Variable Display",
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif !important;
+            font-size: clamp(104px, 11.2vw, 140px) !important;
+            line-height: 0.96 !important;
+            font-weight: 760 !important;
+            letter-spacing: 0.025em !important;
+            font-variant-numeric: tabular-nums !important;
+            font-feature-settings: "tnum" 1, "case" 1 !important;
+            font-synthesis: none !important;
+            text-rendering: geometricPrecision !important;
+            white-space: nowrap !important;
+        }
+
+        .code-display::before {
+            content: "SECURE CODE" !important;
+            position: absolute !important;
+            left: 24px !important;
+            top: 18px !important;
+            width: auto !important;
+            height: 28px !important;
+            transform: none !important;
+            z-index: 3 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            padding: 0 11px 0 25px !important;
+            border-radius: 999px !important;
+            border: 1px solid rgba(214, 226, 242, 0.86) !important;
+            background: rgba(255,255,255,0.74) !important;
+            color: #64748B !important;
+            font-family:
+                ui-sans-serif,
+                -apple-system,
+                BlinkMacSystemFont,
+                "SF Pro Text",
+                "Segoe UI",
+                sans-serif !important;
+            font-size: 10px !important;
+            font-weight: 900 !important;
+            letter-spacing: 1.3px !important;
+            line-height: 1 !important;
+            filter: none !important;
+            opacity: 1 !important;
+            box-sizing: border-box !important;
+        }
+
+        .code-display::after {
+            content: "" !important;
+            position: absolute !important;
+            left: 35px !important;
+            top: 29px !important;
+            width: 7px !important;
+            height: 7px !important;
+            transform: none !important;
+            z-index: 4 !important;
+            border-radius: 50% !important;
+            border: none !important;
+            background: #22D3EE !important;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.72) !important;
+            opacity: 1 !important;
+        }
+
+        #codeLeft,
+        #codeRight {
+            position: relative !important;
+            z-index: 2 !important;
+            min-width: 3.05ch !important;
+            display: inline-block !important;
+            text-align: center !important;
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            background-clip: initial !important;
+            color: #0B1224 !important;
+            -webkit-text-fill-color: #0B1224 !important;
+            text-shadow:
+                0 1px 0 rgba(255,255,255,0.86),
+                0 20px 48px rgba(15,23,42,0.075) !important;
+        }
+
+        #codeRight {
+            color: #1E2A78 !important;
+            -webkit-text-fill-color: #1E2A78 !important;
+        }
+
+        #codeLeft::after {
+            content: "" !important;
+            position: absolute !important;
+            right: calc(-1 * clamp(12px, 1.8vw, 22px)) !important;
+            top: 16% !important;
+            bottom: 16% !important;
+            width: 1px !important;
+            border-radius: 999px !important;
+            background: linear-gradient(
+                180deg,
+                transparent,
+                rgba(148, 163, 184, 0.35),
+                rgba(79, 70, 229, 0.28),
+                rgba(148, 163, 184, 0.35),
+                transparent
+            ) !important;
+        }
+
+        .code-display.code-refreshing #codeLeft,
+        .code-display.code-refreshing #codeRight {
+            animation: codeElegantRefresh 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+        }
+
+        @keyframes codeElegantRefresh {
+            0% {
+                opacity: 0.76;
+                transform: translateY(2px) scale(0.996);
+                filter: blur(0.22px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .timer-widget {
+            margin-bottom: 36px !important;
+        }
+
+        @media (max-width: 1024px) {
+            .code-display {
+                width: min(100%, 640px) !important;
+                padding: 34px 26px 28px !important;
+                font-size: clamp(94px, 11vw, 126px) !important;
+                gap: 28px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .code-display {
+                width: 100% !important;
+                margin: 28px auto 28px !important;
+                padding: 42px 18px 24px !important;
+                border-radius: 30px !important;
+                gap: 14px !important;
+                font-size: clamp(70px, 18vw, 92px) !important;
+                letter-spacing: 0.012em !important;
+            }
+
+            .code-display::before {
+                left: 16px !important;
+                top: 13px !important;
+                height: 24px !important;
+                padding-left: 23px !important;
+                font-size: 9px !important;
+            }
+
+            .code-display::after {
+                left: 27px !important;
+                top: 21px !important;
+                width: 6px !important;
+                height: 6px !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.95ch !important;
+            }
+
+            #codeLeft::after {
+                right: -8px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .code-display {
+                padding: 40px 12px 22px !important;
+                border-radius: 28px !important;
+                gap: 10px !important;
+                font-size: clamp(60px, 16.5vw, 76px) !important;
+                letter-spacing: 0.006em !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.9ch !important;
+            }
+
+            #codeLeft::after {
+                right: -6px !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .code-display {
+                gap: 8px !important;
+                font-size: clamp(54px, 15.5vw, 66px) !important;
+            }
+        }
+
+
+        /* =========================================
+           V64 验证码面板重排版
+           - 删除左上角 SECURE CODE 标识
+           - 验证码数字在面板中垂直居中
+           - 手机端减少上方留白，验证码板块上移并放大
+           - 保留浅色高级工具风格
+           ========================================= */
+
+        .code-display {
+            min-height: 188px !important;
+            margin: 24px auto 32px !important;
+            padding: 24px 34px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 40px !important;
+            background:
+                radial-gradient(circle at 18% 24%, rgba(79, 70, 229, 0.075), transparent 34%),
+                radial-gradient(circle at 82% 28%, rgba(34, 211, 238, 0.075), transparent 34%),
+                linear-gradient(180deg, rgba(255,255,255,0.88), rgba(248,250,252,0.54)) !important;
+        }
+
+        /* 去除左上角 SECURE CODE 和青色状态点 */
+        .code-display::before,
+        .code-display::after {
+            content: none !important;
+            display: none !important;
+        }
+
+        #codeLeft,
+        #codeRight {
+            line-height: 1 !important;
+            transform: translateY(-1px) !important;
+        }
+
+        #codeLeft::after {
+            top: 9% !important;
+            bottom: 9% !important;
+        }
+
+        @media (min-width: 769px) {
+            .subtitle {
+                margin-bottom: 26px !important;
+            }
+
+            .code-display {
+                width: min(100%, 720px) !important;
+                min-height: 196px !important;
+                font-size: clamp(112px, 11.6vw, 148px) !important;
+                margin-top: 22px !important;
+                margin-bottom: 34px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding-top: 34px !important;
+            }
+
+            .brand-badge {
+                margin-bottom: 18px !important;
+            }
+
+            h1 {
+                margin-bottom: 10px !important;
+            }
+
+            .subtitle {
+                margin-bottom: 18px !important;
+            }
+
+            .code-display {
+                width: 100% !important;
+                min-height: 172px !important;
+                margin: 16px auto 26px !important;
+                padding: 22px 14px !important;
+                border-radius: 30px !important;
+                gap: 12px !important;
+                font-size: clamp(82px, 21.8vw, 104px) !important;
+                letter-spacing: 0.006em !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.95ch !important;
+                transform: translateY(0) !important;
+            }
+
+            #codeLeft::after {
+                right: -8px !important;
+                top: 10% !important;
+                bottom: 10% !important;
+            }
+
+            .timer-widget {
+                margin-bottom: 30px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            main {
+                padding-top: 32px !important;
+            }
+
+            .brand-badge {
+                margin-bottom: 16px !important;
+            }
+
+            .subtitle {
+                margin-bottom: 14px !important;
+            }
+
+            .code-display {
+                min-height: 154px !important;
+                margin: 14px auto 24px !important;
+                padding: 20px 10px !important;
+                border-radius: 28px !important;
+                gap: 9px !important;
+                font-size: clamp(70px, 19.4vw, 90px) !important;
+                letter-spacing: 0 !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.88ch !important;
+            }
+
+            #codeLeft::after {
+                right: -6px !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .code-display {
+                min-height: 142px !important;
+                font-size: clamp(62px, 18vw, 78px) !important;
+                gap: 7px !important;
+            }
+        }
+
+
+        /* =========================================
+           V65 iPhone 17 Pro Max / 大屏手机验证码溢出修复
+           - 保持浅色高级验证码面板
+           - 强制验证码完整在边框内
+           - 手机端按真实可用宽度收缩数字
+           ========================================= */
+
+        .code-display {
+            box-sizing: border-box !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+        }
+
+        #codeLeft,
+        #codeRight {
+            box-sizing: border-box !important;
+            flex: 0 1 auto !important;
+            min-width: 0 !important;
+            max-width: 50% !important;
+            white-space: nowrap !important;
+            line-height: 1 !important;
+        }
+
+        @media (max-width: 768px) {
+            .code-display {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 158px !important;
+                margin: 14px auto 24px !important;
+                padding: 20px 14px !important;
+                border-radius: 30px !important;
+                gap: clamp(7px, 1.8vw, 11px) !important;
+                font-size: clamp(58px, 15.6vw, 78px) !important;
+                letter-spacing: 0 !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.78ch !important;
+                max-width: calc(50% - 6px) !important;
+                text-align: center !important;
+                transform: translateY(0) !important;
+            }
+
+            #codeLeft::after {
+                right: -6px !important;
+                top: 11% !important;
+                bottom: 11% !important;
+            }
+        }
+
+        /* iPhone Pro Max / Plus 等 390-460px 宽度重点适配 */
+        @media (min-width: 390px) and (max-width: 460px) {
+            .code-display {
+                min-height: 150px !important;
+                padding: 19px 12px !important;
+                font-size: clamp(62px, 15.2vw, 72px) !important;
+                gap: 8px !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.72ch !important;
+                max-width: calc(50% - 5px) !important;
+            }
+
+            #codeLeft::after {
+                right: -5px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .code-display {
+                min-height: 146px !important;
+                margin: 12px auto 23px !important;
+                padding: 18px 10px !important;
+                border-radius: 28px !important;
+                gap: 7px !important;
+                font-size: clamp(56px, 15vw, 66px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.7ch !important;
+                max-width: calc(50% - 5px) !important;
+            }
+
+            #codeLeft::after {
+                right: -5px !important;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .code-display {
+                min-height: 138px !important;
+                padding: 17px 8px !important;
+                gap: 6px !important;
+                font-size: clamp(50px, 14.2vw, 60px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.62ch !important;
+                max-width: calc(50% - 4px) !important;
+            }
+
+            #codeLeft::after {
+                right: -4px !important;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .code-display {
+                font-size: 48px !important;
+                gap: 5px !important;
+            }
+        }
+
+
+        /* =========================================
+           V66 验证码视觉平衡版
+           - 解决 V65 字体太靠拢、两侧太空的问题
+           - 手机端数字更舒展，但仍保持不溢出
+           - 面板宽度收一点，视觉更聚焦
+           ========================================= */
+
+        .code-display {
+            overflow: hidden !important;
+        }
+
+        #codeLeft,
+        #codeRight {
+            letter-spacing: 0.07em !important;
+            min-width: 3.12ch !important;
+            max-width: none !important;
+            flex: 0 0 auto !important;
+        }
+
+        #codeLeft {
+            text-align: right !important;
+        }
+
+        #codeRight {
+            text-align: left !important;
+        }
+
+        #codeLeft::after {
+            opacity: 0.9 !important;
+        }
+
+        @media (min-width: 769px) {
+            .code-display {
+                width: min(100%, 680px) !important;
+                min-height: 184px !important;
+                padding: 24px 34px !important;
+                gap: 34px !important;
+                font-size: clamp(112px, 11vw, 140px) !important;
+                letter-spacing: 0.02em !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                letter-spacing: 0.05em !important;
+                min-width: 3.08ch !important;
+            }
+
+            #codeLeft::after {
+                right: -18px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .code-display {
+                width: 94% !important;
+                max-width: 430px !important;
+                min-height: 156px !important;
+                margin: 14px auto 24px !important;
+                padding: 20px 16px !important;
+                border-radius: 30px !important;
+                gap: clamp(16px, 5vw, 24px) !important;
+                font-size: clamp(66px, 17.2vw, 82px) !important;
+                letter-spacing: 0 !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 3.05ch !important;
+                max-width: none !important;
+                letter-spacing: 0.055em !important;
+                transform: translateY(0) !important;
+            }
+
+            #codeLeft::after {
+                right: calc(-1 * clamp(9px, 2.6vw, 13px)) !important;
+                top: 12% !important;
+                bottom: 12% !important;
+            }
+        }
+
+        /* iPhone Pro Max / Plus：让数字更大更舒展，同时保证进边框 */
+        @media (min-width: 390px) and (max-width: 460px) {
+            .code-display {
+                width: 94% !important;
+                max-width: 408px !important;
+                min-height: 154px !important;
+                padding: 20px 14px !important;
+                gap: clamp(16px, 4.8vw, 22px) !important;
+                font-size: clamp(68px, 16.4vw, 78px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 3.02ch !important;
+                letter-spacing: 0.05em !important;
+            }
+
+            #codeLeft::after {
+                right: -10px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .code-display {
+                width: 94% !important;
+                min-height: 148px !important;
+                padding: 19px 12px !important;
+                border-radius: 28px !important;
+                gap: clamp(13px, 4.2vw, 18px) !important;
+                font-size: clamp(62px, 16.2vw, 72px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.98ch !important;
+                letter-spacing: 0.045em !important;
+            }
+
+            #codeLeft::after {
+                right: -8px !important;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .code-display {
+                width: 95% !important;
+                min-height: 140px !important;
+                padding: 18px 9px !important;
+                gap: 11px !important;
+                font-size: clamp(56px, 15.2vw, 64px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.9ch !important;
+                letter-spacing: 0.035em !important;
+            }
+
+            #codeLeft::after {
+                right: -6px !important;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .code-display {
+                font-size: 52px !important;
+                gap: 9px !important;
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                letter-spacing: 0.02em !important;
+            }
+        }
+
+
+        /* =========================================
+           V67 手机端验证码饱满优化版
+           - 保留 V66 的数字间隙
+           - 手机端数字更大、更接近面板左右边缘
+           - 不超出验证码面板边框
+           ========================================= */
+
+        @media (max-width: 768px) {
+            .code-display {
+                width: 97% !important;
+                max-width: 438px !important;
+                min-height: 158px !important;
+                margin: 14px auto 24px !important;
+                padding: 18px 7px !important;
+                border-radius: 30px !important;
+                gap: clamp(14px, 4.4vw, 20px) !important;
+                font-size: clamp(70px, 18.2vw, 88px) !important;
+                letter-spacing: 0 !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.96ch !important;
+                max-width: none !important;
+                letter-spacing: 0.038em !important;
+                transform: translateY(0) !important;
+            }
+
+            #codeLeft::after {
+                right: calc(-1 * clamp(8px, 2.3vw, 11px)) !important;
+                top: 11% !important;
+                bottom: 11% !important;
+            }
+        }
+
+        /* iPhone Pro Max / Plus 等 390-460px 宽度：重点让数字吃满红框区域 */
+        @media (min-width: 390px) and (max-width: 460px) {
+            .code-display {
+                width: 97% !important;
+                max-width: 424px !important;
+                min-height: 158px !important;
+                padding: 18px 6px !important;
+                gap: clamp(13px, 4.1vw, 18px) !important;
+                font-size: clamp(76px, 18.4vw, 86px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.92ch !important;
+                letter-spacing: 0.032em !important;
+            }
+
+            #codeLeft::after {
+                right: -8px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .code-display {
+                width: 97% !important;
+                max-width: 100% !important;
+                min-height: 154px !important;
+                padding: 17px 6px !important;
+                border-radius: 28px !important;
+                gap: clamp(11px, 3.7vw, 15px) !important;
+                font-size: clamp(70px, 17.7vw, 80px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.9ch !important;
+                letter-spacing: 0.026em !important;
+            }
+
+            #codeLeft::after {
+                right: -7px !important;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .code-display {
+                min-height: 146px !important;
+                padding: 16px 5px !important;
+                gap: 10px !important;
+                font-size: clamp(62px, 16.4vw, 72px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.84ch !important;
+                letter-spacing: 0.02em !important;
+            }
+
+            #codeLeft::after {
+                right: -6px !important;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .code-display {
+                width: 98% !important;
+                font-size: 56px !important;
+                gap: 8px !important;
+                padding-left: 4px !important;
+                padding-right: 4px !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 2.78ch !important;
+                letter-spacing: 0.012em !important;
+            }
+        }
+
+
+        /* =========================================
+           V68 iPhone Pro Max 验证码最终约束修复
+           - 修复 V67 在 iPhone 17 Pro Max 上左右裁切
+           - 数字更靠近边缘，但始终完整显示在框内
+           - 通过固定组宽 + 安全字号上限控制，不再溢出
+           ========================================= */
+
+        @media (max-width: 768px) {
+            .code-display {
+                width: 96% !important;
+                max-width: 420px !important;
+                min-height: 154px !important;
+                margin: 14px auto 24px !important;
+                padding: 18px 12px !important;
+                border-radius: 30px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: clamp(12px, 3.7vw, 18px) !important;
+                font-size: clamp(66px, 17.1vw, 78px) !important;
+                letter-spacing: 0 !important;
+                overflow: hidden !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 3.22ch !important;
+                min-width: 3.22ch !important;
+                max-width: 3.22ch !important;
+                flex: 0 0 3.22ch !important;
+                text-align: center !important;
+                white-space: nowrap !important;
+                letter-spacing: 0.026em !important;
+                line-height: 1 !important;
+                transform: translateY(0) !important;
+            }
+
+            #codeLeft::after {
+                right: calc(-1 * clamp(7px, 2vw, 10px)) !important;
+                top: 12% !important;
+                bottom: 12% !important;
+            }
+        }
+
+        /* iPhone Pro Max / Plus 重点：430px 左右宽度 */
+        @media (min-width: 390px) and (max-width: 460px) {
+            .code-display {
+                width: 96% !important;
+                max-width: 412px !important;
+                min-height: 154px !important;
+                padding: 18px 10px !important;
+                gap: clamp(12px, 3.4vw, 16px) !important;
+                font-size: clamp(68px, 16.2vw, 76px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                width: 3.18ch !important;
+                min-width: 3.18ch !important;
+                max-width: 3.18ch !important;
+                flex-basis: 3.18ch !important;
+                letter-spacing: 0.022em !important;
+            }
+
+            #codeLeft::after {
+                right: -7px !important;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .code-display {
+                width: 96% !important;
+                max-width: 396px !important;
+                min-height: 148px !important;
+                padding: 17px 9px !important;
+                gap: clamp(10px, 3.2vw, 14px) !important;
+                font-size: clamp(62px, 15.9vw, 70px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                width: 3.14ch !important;
+                min-width: 3.14ch !important;
+                max-width: 3.14ch !important;
+                flex-basis: 3.14ch !important;
+                letter-spacing: 0.018em !important;
+            }
+
+            #codeLeft::after {
+                right: -6px !important;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .code-display {
+                min-height: 142px !important;
+                padding: 16px 8px !important;
+                gap: 9px !important;
+                font-size: clamp(56px, 15.1vw, 64px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                width: 3.08ch !important;
+                min-width: 3.08ch !important;
+                max-width: 3.08ch !important;
+                flex-basis: 3.08ch !important;
+                letter-spacing: 0.012em !important;
+            }
+
+            #codeLeft::after {
+                right: -5px !important;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .code-display {
+                font-size: 52px !important;
+                gap: 7px !important;
+                padding-left: 6px !important;
+                padding-right: 6px !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                width: 3.02ch !important;
+                min-width: 3.02ch !important;
+                max-width: 3.02ch !important;
+                flex-basis: 3.02ch !important;
+                letter-spacing: 0 !important;
+            }
+        }
+
+
+        /* =========================================
+           V69 首屏信息完整显示优化版
+           - 桌面端压缩纵向空间
+           - Support & Security 改为紧凑等宽等高面板
+           - 尽量让联系方式和安全建议在首屏可见
+           - 保留手机端验证码安全适配
+           ========================================= */
+
+        @media (min-width: 769px) {
+            body {
+                padding-top: 22px !important;
+                padding-bottom: 22px !important;
+            }
+
+            main {
+                max-width: 880px !important;
+                padding: 36px 58px 42px !important;
+                border-radius: 30px !important;
+            }
+
+            .brand-badge {
+                height: 34px !important;
+                margin-bottom: 18px !important;
+                padding: 0 16px !important;
+                font-size: 12px !important;
+            }
+
+            h1 {
+                font-size: clamp(34px, 3.4vw, 44px) !important;
+                margin-bottom: 10px !important;
+                line-height: 1.06 !important;
+            }
+
+            .subtitle {
+                font-size: 14px !important;
+                margin-bottom: 18px !important;
+            }
+
+            .code-display {
+                width: min(100%, 640px) !important;
+                min-height: 158px !important;
+                margin: 14px auto 22px !important;
+                padding: 20px 30px !important;
+                border-radius: 34px !important;
+                gap: 28px !important;
+                font-size: clamp(92px, 8.8vw, 118px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 3.02ch !important;
+                letter-spacing: 0.042em !important;
+            }
+
+            #codeLeft::after {
+                right: -14px !important;
+            }
+
+            .timer-widget {
+                min-height: 46px !important;
+                margin-bottom: 24px !important;
+                transform: scale(0.94);
+                transform-origin: center;
+            }
+
+            .action-layout-container,
+            .action-layout-v51 {
+                margin-bottom: 30px !important;
+            }
+
+            .btn-primary-centered {
+                width: min(100%, 390px) !important;
+                height: 56px !important;
+                font-size: 15px !important;
+            }
+
+            .utility-dock {
+                width: min(100%, 390px) !important;
+                min-height: 52px !important;
+                height: 52px !important;
+            }
+
+            .utility-action {
+                height: 44px !important;
+                font-size: 13px !important;
+                gap: 7px !important;
+            }
+
+            .utility-icon {
+                width: 25px !important;
+                height: 25px !important;
+            }
+
+            .utility-icon svg {
+                width: 14px !important;
+                height: 14px !important;
+            }
+
+            .trust-panel {
+                max-width: 680px !important;
+                border-radius: 24px !important;
+                margin-top: 0 !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                min-height: auto !important;
+                padding: 18px 26px 14px !important;
+                border-bottom: 1px solid rgba(226, 232, 240, 0.82) !important;
+            }
+
+            .trust-kicker,
+            .kicker {
+                font-size: 10.5px !important;
+                letter-spacing: 1.55px !important;
+                margin-bottom: 6px !important;
+            }
+
+            .trust-title {
+                font-size: 19px !important;
+                line-height: 1.2 !important;
+                letter-spacing: -0.25px !important;
+            }
+
+            .trust-grid {
+                display: grid !important;
+                grid-template-columns: 1fr auto 1fr !important;
+                align-items: stretch !important;
+            }
+
+            .trust-item {
+                min-height: 118px !important;
+                height: 118px !important;
+                padding: 22px 24px !important;
+                display: grid !important;
+                grid-template-columns: 38px minmax(0, 1fr) !important;
+                column-gap: 14px !important;
+                align-items: flex-start !important;
+            }
+
+            .trust-icon {
+                width: 38px !important;
+                height: 38px !important;
+                border-radius: 14px !important;
+            }
+
+            .trust-icon svg {
+                width: 19px !important;
+                height: 19px !important;
+            }
+
+            .trust-copy-title {
+                font-size: 15px !important;
+                margin-bottom: 5px !important;
+                line-height: 1.2 !important;
+            }
+
+            .trust-copy p {
+                font-size: 12.6px !important;
+                line-height: 1.48 !important;
+                font-weight: 650 !important;
+                max-width: 100% !important;
+            }
+
+            .trust-divider {
+                width: 1px !important;
+                height: auto !important;
+                margin: 20px 0 !important;
+                background: linear-gradient(180deg, transparent, #DDE5F0, transparent) !important;
+            }
+
+            .support-chip {
+                height: 34px !important;
+                min-width: 132px !important;
+                margin-top: 8px !important;
+                padding: 0 11px 0 12px !important;
+                gap: 7px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 13.5px !important;
+                font-weight: 900 !important;
+            }
+
+            .chip-hint {
+                font-size: 10.5px !important;
+                padding-left: 2px !important;
+            }
+
+            .status-pulse-dot,
+            .status-dot {
+                width: 7px !important;
+                height: 7px !important;
+            }
+
+            .soft-tag {
+                height: 21px !important;
+                padding: 0 7px !important;
+                border-radius: 7px !important;
+            }
+
+            .security-footnote {
+                margin-top: 6px !important;
+                font-size: 11px !important;
+                line-height: 1.35 !important;
+            }
+
+            .privacy-mascot {
+                width: 78px !important;
+                height: auto !important;
+                right: -38px !important;
+                top: 43% !important;
+            }
+        }
+
+        /* 矮屏桌面进一步压缩，保证首屏显示完整 */
+        @media (min-width: 769px) and (max-height: 850px) {
+            body {
+                padding-top: 12px !important;
+                padding-bottom: 12px !important;
+            }
+
+            main {
+                padding-top: 30px !important;
+                padding-bottom: 34px !important;
+            }
+
+            .brand-badge {
+                margin-bottom: 14px !important;
+            }
+
+            h1 {
+                font-size: clamp(32px, 3.1vw, 40px) !important;
+                margin-bottom: 8px !important;
+            }
+
+            .subtitle {
+                margin-bottom: 14px !important;
+            }
+
+            .code-display {
+                min-height: 144px !important;
+                margin-top: 10px !important;
+                margin-bottom: 18px !important;
+                font-size: clamp(84px, 7.8vw, 104px) !important;
+            }
+
+            .timer-widget {
+                margin-bottom: 18px !important;
+                transform: scale(0.9);
+            }
+
+            .action-layout-container,
+            .action-layout-v51 {
+                margin-bottom: 22px !important;
+            }
+
+            .btn-primary-centered {
+                height: 52px !important;
+            }
+
+            .utility-dock {
+                height: 48px !important;
+                min-height: 48px !important;
+            }
+
+            .utility-action {
+                height: 40px !important;
+            }
+
+            .trust-item {
+                height: 108px !important;
+                min-height: 108px !important;
+                padding-top: 18px !important;
+                padding-bottom: 18px !important;
+            }
+        }
+
+        /* 手机端保持上一版验证码安全约束，只略微压缩下方面板开头 */
+        @media (max-width: 768px) {
+            .trust-panel {
+                margin-top: 0 !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding-top: 22px !important;
+                padding-bottom: 16px !important;
+            }
+        }
+
+
+        /* =========================================
+           V70 Support 面板精简优化版
+           - 左侧“客服支持”重做为：有问题联系微信：
+           - 放大 Cedars8，减少无效说明文字
+           - 缩小 SUPPORT & SECURITY / 账户支持与安全建议
+           - 进一步压缩头部占用，释放下方可读空间
+           ========================================= */
+
+        .trust-panel-head,
+        .trust-head {
+            padding: 14px 22px 10px !important;
+            min-height: auto !important;
+        }
+
+        .trust-kicker,
+        .kicker {
+            font-size: 10px !important;
+            letter-spacing: 1.45px !important;
+            margin-bottom: 4px !important;
+        }
+
+        .trust-title {
+            font-size: 16px !important;
+            line-height: 1.18 !important;
+            letter-spacing: -0.18px !important;
+        }
+
+        .trust-grid {
+            align-items: stretch !important;
+        }
+
+        .trust-item {
+            padding: 18px 20px !important;
+            min-height: 104px !important;
+        }
+
+        .support-item {
+            align-items: center !important;
+        }
+
+        .support-item .trust-copy {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+        }
+
+        .support-item .trust-copy-title {
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            line-height: 1.2 !important;
+            margin-bottom: 0 !important;
+        }
+
+        .support-item p {
+            display: none !important;
+        }
+
+        .support-chip {
+            height: 42px !important;
+            min-width: 178px !important;
+            padding: 0 14px !important;
+            gap: 8px !important;
+            margin-top: 0 !important;
+            border-radius: 999px !important;
+        }
+
+        .support-chip .button-label {
+            font-size: 17px !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.15px !important;
+        }
+
+        .chip-hint {
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            color: #94A3B8 !important;
+        }
+
+        .trust-copy p {
+            font-size: 12px !important;
+            line-height: 1.42 !important;
+        }
+
+        .security-item .trust-copy-title {
+            font-size: 16px !important;
+            margin-bottom: 4px !important;
+        }
+
+        .security-item .security-footnote {
+            margin-top: 4px !important;
+            font-size: 10.8px !important;
+            line-height: 1.35 !important;
+        }
+
+        @media (min-width: 769px) {
+            main {
+                padding-top: 34px !important;
+                padding-bottom: 34px !important;
+            }
+
+            .trust-panel {
+                max-width: 660px !important;
+                margin-top: 0 !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 13px 22px 9px !important;
+            }
+
+            .trust-title {
+                font-size: 15px !important;
+            }
+
+            .trust-item {
+                min-height: 98px !important;
+                height: 98px !important;
+                padding: 16px 18px !important;
+                grid-template-columns: 36px minmax(0,1fr) !important;
+                column-gap: 12px !important;
+            }
+
+            .trust-icon {
+                width: 36px !important;
+                height: 36px !important;
+                border-radius: 12px !important;
+            }
+
+            .trust-icon svg {
+                width: 18px !important;
+                height: 18px !important;
+            }
+
+            .support-item .trust-copy-title,
+            .security-item .trust-copy-title {
+                font-size: 15px !important;
+            }
+
+            .support-chip {
+                min-width: 188px !important;
+                height: 42px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 18px !important;
+            }
+
+            .chip-hint {
+                font-size: 10.5px !important;
+            }
+
+            .security-item .trust-copy p {
+                font-size: 12px !important;
+                line-height: 1.4 !important;
+            }
+
+            .trust-divider {
+                margin: 16px 0 !important;
+            }
+        }
+
+        @media (min-width: 769px) and (max-height: 850px) {
+            .trust-panel-head,
+            .trust-head {
+                padding-top: 11px !important;
+                padding-bottom: 8px !important;
+            }
+
+            .trust-item {
+                min-height: 92px !important;
+                height: 92px !important;
+                padding-top: 14px !important;
+                padding-bottom: 14px !important;
+            }
+
+            .support-chip {
+                height: 40px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .trust-panel {
+                margin-top: 0 !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 18px 20px 12px !important;
+            }
+
+            .trust-kicker,
+            .kicker {
+                font-size: 10px !important;
+                letter-spacing: 1.35px !important;
+                margin-bottom: 5px !important;
+            }
+
+            .trust-title {
+                font-size: 15px !important;
+                line-height: 1.2 !important;
+            }
+
+            .trust-item {
+                padding: 18px 18px !important;
+                min-height: auto !important;
+            }
+
+            .support-item .trust-copy-title {
+                font-size: 16px !important;
+                margin-bottom: 0 !important;
+            }
+
+            .support-chip {
+                height: 46px !important;
+                min-width: 192px !important;
+                padding: 0 16px !important;
+                margin-top: 2px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 20px !important;
+            }
+
+            .chip-hint {
+                font-size: 11px !important;
+            }
+
+            .security-item .trust-copy-title {
+                font-size: 16px !important;
+            }
+
+            .security-item .trust-copy p {
+                font-size: 13px !important;
+                line-height: 1.45 !important;
+            }
+
+            .security-item .security-footnote {
+                font-size: 11px !important;
+                line-height: 1.38 !important;
+            }
+        }
+
+
+        /* =========================================
+           V71 固定首屏大画布版
+           - 桌面端主白色面板扩大到红框范围
+           - 页面固定一屏，不再需要鼠标滚轮上下滑动
+           - 底部 Support & Security 面板释放空间，不再局促
+           - 手机端继续保留滚动与验证码安全适配
+           ========================================= */
+
+        @media (min-width: 769px) {
+            html,
+            body {
+                width: 100% !important;
+                height: 100% !important;
+                min-height: 100% !important;
+                overflow: hidden !important;
+            }
+
+            body {
+                height: 100vh !important;
+                height: 100dvh !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            main {
+                width: min(80vw, 1100px) !important;
+                max-width: 1100px !important;
+                height: min(90vh, 920px) !important;
+                max-height: 920px !important;
+                min-height: 760px !important;
+                padding: clamp(32px, 4vh, 48px) clamp(58px, 5vw, 82px) clamp(28px, 3.6vh, 42px) !important;
+                border-radius: 34px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                overflow: hidden !important;
+            }
+
+            .brand-badge {
+                height: 34px !important;
+                margin-bottom: clamp(14px, 1.7vh, 20px) !important;
+                padding: 0 17px !important;
+                font-size: 12px !important;
+            }
+
+            h1 {
+                font-size: clamp(38px, 3.2vw, 48px) !important;
+                margin-bottom: 10px !important;
+                line-height: 1.05 !important;
+            }
+
+            .subtitle {
+                font-size: 14.5px !important;
+                margin-bottom: clamp(16px, 2vh, 22px) !important;
+            }
+
+            .code-display {
+                width: min(100%, 700px) !important;
+                min-height: clamp(148px, 18vh, 188px) !important;
+                margin: 0 auto clamp(16px, 2vh, 22px) !important;
+                padding: 20px 32px !important;
+                border-radius: 34px !important;
+                gap: 30px !important;
+                font-size: clamp(92px, 8.4vw, 124px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 3.02ch !important;
+                letter-spacing: 0.044em !important;
+            }
+
+            #codeLeft::after {
+                right: -15px !important;
+            }
+
+            .timer-widget {
+                min-height: 44px !important;
+                margin-bottom: clamp(18px, 2.4vh, 26px) !important;
+                transform: scale(0.94);
+                transform-origin: center;
+            }
+
+            .action-layout-container,
+            .action-layout-v51 {
+                margin-bottom: clamp(22px, 3vh, 34px) !important;
+            }
+
+            .btn-primary-centered {
+                width: min(100%, 430px) !important;
+                height: 56px !important;
+                font-size: 15px !important;
+            }
+
+            .utility-dock {
+                width: min(100%, 430px) !important;
+                height: 52px !important;
+                min-height: 52px !important;
+            }
+
+            .utility-action {
+                height: 44px !important;
+                font-size: 13px !important;
+                gap: 7px !important;
+            }
+
+            .utility-icon {
+                width: 25px !important;
+                height: 25px !important;
+            }
+
+            .utility-icon svg {
+                width: 14px !important;
+                height: 14px !important;
+            }
+
+            .trust-panel {
+                width: min(100%, 820px) !important;
+                max-width: 820px !important;
+                margin: 0 auto !important;
+                border-radius: 26px !important;
+                flex: 1 1 auto !important;
+                min-height: 158px !important;
+                max-height: 210px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 18px 32px 12px !important;
+                min-height: auto !important;
+                flex: 0 0 auto !important;
+            }
+
+            .trust-kicker,
+            .kicker {
+                font-size: 10px !important;
+                letter-spacing: 1.55px !important;
+                margin-bottom: 5px !important;
+                line-height: 1.1 !important;
+            }
+
+            .trust-title {
+                font-size: 19px !important;
+                line-height: 1.18 !important;
+                letter-spacing: -0.22px !important;
+            }
+
+            .trust-grid {
+                display: grid !important;
+                grid-template-columns: 1fr auto 1fr !important;
+                align-items: stretch !important;
+                flex: 1 1 auto !important;
+                min-height: 0 !important;
+            }
+
+            .trust-item {
+                height: auto !important;
+                min-height: 118px !important;
+                padding: 22px 30px !important;
+                display: grid !important;
+                grid-template-columns: 42px minmax(0, 1fr) !important;
+                column-gap: 16px !important;
+                align-items: center !important;
+            }
+
+            .trust-icon {
+                width: 42px !important;
+                height: 42px !important;
+                border-radius: 15px !important;
+            }
+
+            .trust-icon svg {
+                width: 20px !important;
+                height: 20px !important;
+            }
+
+            .support-contact-title {
+                font-size: 17px !important;
+                margin-bottom: 12px !important;
+                line-height: 1.2 !important;
+                white-space: nowrap !important;
+            }
+
+            .support-chip {
+                height: 46px !important;
+                min-width: 190px !important;
+                margin-top: 0 !important;
+                padding: 0 18px 0 20px !important;
+                gap: 9px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 20px !important;
+                font-weight: 900 !important;
+                letter-spacing: -0.15px !important;
+            }
+
+            .chip-hint {
+                font-size: 12px !important;
+                font-weight: 850 !important;
+                padding-left: 4px !important;
+            }
+
+            .status-pulse-dot,
+            .status-dot {
+                width: 9px !important;
+                height: 9px !important;
+            }
+
+            .trust-item:nth-of-type(3) .trust-copy-title,
+            .security-item .trust-copy-title {
+                font-size: 16px !important;
+                margin-bottom: 7px !important;
+                line-height: 1.2 !important;
+            }
+
+            .trust-copy p {
+                font-size: 13.2px !important;
+                line-height: 1.5 !important;
+                font-weight: 650 !important;
+                max-width: 100% !important;
+            }
+
+            .soft-tag {
+                height: 22px !important;
+                padding: 0 8px !important;
+                border-radius: 8px !important;
+            }
+
+            .security-footnote {
+                margin-top: 7px !important;
+                font-size: 11.5px !important;
+                line-height: 1.35 !important;
+            }
+
+            .trust-divider {
+                width: 1px !important;
+                height: auto !important;
+                margin: 22px 0 !important;
+                background: linear-gradient(180deg, transparent, #DDE5F0, transparent) !important;
+            }
+
+            .privacy-mascot {
+                width: 82px !important;
+                height: auto !important;
+                right: -40px !important;
+                top: 43% !important;
+            }
+        }
+
+        @media (min-width: 769px) and (max-height: 850px) {
+            main {
+                height: 94vh !important;
+                min-height: 690px !important;
+                padding-top: 30px !important;
+                padding-bottom: 30px !important;
+            }
+
+            .brand-badge {
+                margin-bottom: 12px !important;
+            }
+
+            h1 {
+                font-size: clamp(34px, 3vw, 42px) !important;
+                margin-bottom: 7px !important;
+            }
+
+            .subtitle {
+                margin-bottom: 12px !important;
+            }
+
+            .code-display {
+                min-height: 138px !important;
+                margin-bottom: 14px !important;
+                font-size: clamp(82px, 7.5vw, 106px) !important;
+            }
+
+            .timer-widget {
+                margin-bottom: 14px !important;
+                transform: scale(0.88);
+            }
+
+            .action-layout-container,
+            .action-layout-v51 {
+                margin-bottom: 18px !important;
+            }
+
+            .btn-primary-centered {
+                height: 50px !important;
+            }
+
+            .utility-dock {
+                height: 46px !important;
+                min-height: 46px !important;
+            }
+
+            .utility-action {
+                height: 38px !important;
+            }
+
+            .trust-panel {
+                min-height: 148px !important;
+                max-height: 178px !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding-top: 12px !important;
+                padding-bottom: 8px !important;
+            }
+
+            .trust-item {
+                min-height: 104px !important;
+                padding-top: 16px !important;
+                padding-bottom: 16px !important;
+            }
+
+            .support-chip {
+                height: 40px !important;
+                min-width: 176px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 18px !important;
+            }
+
+            .trust-copy p {
+                font-size: 12.2px !important;
+                line-height: 1.42 !important;
+            }
+
+            .security-footnote {
+                font-size: 10.6px !important;
+                margin-top: 5px !important;
+            }
+        }
+
+        /* 手机端继续允许滚动，避免底部浏览器栏遮挡内容 */
+        @media (max-width: 768px) {
+            html,
+            body {
+                height: auto !important;
+                min-height: 100% !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+            }
+
+            main {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+        }
+
+
+        /* =========================================
+           V72 红框区域精确收敛版
+           - 桌面端主面板不再过宽，严格收敛到红框视觉范围
+           - Cedars8 删除“点击复制”，按钮按文字自适应
+           - 左右两栏标题、图标、内容重新对齐
+           - 页面继续固定首屏
+           ========================================= */
+
+        @media (min-width: 769px) {
+            body {
+                overflow: hidden !important;
+            }
+
+            main {
+                width: min(72vw, 980px) !important;
+                max-width: 980px !important;
+                height: min(90vh, 900px) !important;
+                min-height: 730px !important;
+                padding: clamp(32px, 4vh, 46px) clamp(50px, 4.2vw, 70px) clamp(30px, 3.6vh, 42px) !important;
+                border-radius: 32px !important;
+            }
+
+            .code-display {
+                width: min(100%, 660px) !important;
+                min-height: clamp(146px, 17vh, 178px) !important;
+                margin-bottom: clamp(16px, 2vh, 22px) !important;
+                font-size: clamp(88px, 7.9vw, 116px) !important;
+                gap: 28px !important;
+            }
+
+            .btn-primary-centered {
+                width: min(100%, 410px) !important;
+            }
+
+            .utility-dock {
+                width: min(100%, 410px) !important;
+            }
+
+            .trust-panel {
+                width: min(100%, 760px) !important;
+                max-width: 760px !important;
+                min-height: 172px !important;
+                max-height: 220px !important;
+                border-radius: 24px !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 16px 30px 11px !important;
+            }
+
+            .trust-kicker,
+            .kicker {
+                font-size: 9.5px !important;
+                letter-spacing: 1.45px !important;
+                margin-bottom: 4px !important;
+            }
+
+            .trust-title {
+                font-size: 17.5px !important;
+                line-height: 1.18 !important;
+            }
+
+            .trust-grid {
+                grid-template-columns: 1fr auto 1fr !important;
+                align-items: stretch !important;
+            }
+
+            .trust-item {
+                height: auto !important;
+                min-height: 124px !important;
+                padding: 22px 28px !important;
+                grid-template-columns: 42px minmax(0, 1fr) !important;
+                column-gap: 16px !important;
+                align-items: center !important;
+            }
+
+            .trust-item .trust-copy {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                min-height: 76px !important;
+            }
+
+            .trust-icon {
+                width: 42px !important;
+                height: 42px !important;
+                border-radius: 15px !important;
+                align-self: center !important;
+            }
+
+            .trust-icon svg {
+                width: 20px !important;
+                height: 20px !important;
+            }
+
+            .support-contact-title,
+            .trust-item:nth-of-type(3) .trust-copy-title,
+            .security-item .trust-copy-title {
+                font-size: 16.5px !important;
+                line-height: 1.2 !important;
+                margin: 0 0 10px 0 !important;
+                white-space: nowrap !important;
+            }
+
+            .support-chip {
+                width: fit-content !important;
+                min-width: 0 !important;
+                height: 44px !important;
+                margin-top: 0 !important;
+                padding: 0 18px !important;
+                gap: 9px !important;
+                border-radius: 999px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 20px !important;
+                font-weight: 900 !important;
+                letter-spacing: -0.15px !important;
+            }
+
+            .chip-hint {
+                display: none !important;
+            }
+
+            .status-pulse-dot,
+            .status-dot {
+                width: 9px !important;
+                height: 9px !important;
+            }
+
+            .trust-copy p {
+                font-size: 13px !important;
+                line-height: 1.5 !important;
+                font-weight: 650 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .security-footnote {
+                margin-top: 7px !important;
+                font-size: 11.3px !important;
+                line-height: 1.35 !important;
+            }
+
+            .soft-tag {
+                height: 22px !important;
+                padding: 0 8px !important;
+                border-radius: 8px !important;
+            }
+
+            .trust-divider {
+                margin: 22px 0 !important;
+            }
+
+            .privacy-mascot {
+                right: -42px !important;
+                top: 43% !important;
+                width: 80px !important;
+            }
+        }
+
+        @media (min-width: 769px) and (max-height: 850px) {
+            main {
+                width: min(72vw, 970px) !important;
+                height: 94vh !important;
+                min-height: 690px !important;
+                padding-top: 28px !important;
+                padding-bottom: 28px !important;
+            }
+
+            .code-display {
+                min-height: 138px !important;
+                margin-bottom: 14px !important;
+                font-size: clamp(82px, 7.3vw, 104px) !important;
+            }
+
+            .timer-widget {
+                margin-bottom: 14px !important;
+            }
+
+            .action-layout-container,
+            .action-layout-v51 {
+                margin-bottom: 18px !important;
+            }
+
+            .trust-panel {
+                min-height: 156px !important;
+                max-height: 180px !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 11px 28px 8px !important;
+            }
+
+            .trust-item {
+                min-height: 106px !important;
+                padding-top: 16px !important;
+                padding-bottom: 16px !important;
+            }
+
+            .support-chip {
+                height: 40px !important;
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 18px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chip-hint {
+                display: none !important;
+            }
+
+            .support-chip {
+                width: fit-content !important;
+                min-width: 0 !important;
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+
+            .support-contact-title {
+                white-space: nowrap !important;
+            }
+        }
+
+
+        /* =========================================
+           V73 红框区域等比例放大版
+           - 桌面端主内容区域严格放大到红线标记范围
+           - 板块内验证码、按钮、底部信息同步放大
+           - 页面继续固定首屏，不需要滚轮
+           - 手机端不动，沿用上一版适配
+           ========================================= */
+
+        @media (min-width: 769px) {
+            html,
+            body {
+                width: 100% !important;
+                height: 100% !important;
+                min-height: 100% !important;
+                overflow: hidden !important;
+            }
+
+            body {
+                height: 100vh !important;
+                height: 100dvh !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            main {
+                width: min(79vw, 1080px) !important;
+                max-width: 1080px !important;
+                height: min(91vh, 900px) !important;
+                max-height: 900px !important;
+                min-height: 750px !important;
+                padding: clamp(36px, 4.2vh, 50px) clamp(58px, 4.8vw, 78px) clamp(34px, 4vh, 46px) !important;
+                border-radius: 34px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                overflow: hidden !important;
+            }
+
+            .corner-deco {
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+            .brand-badge {
+                height: 36px !important;
+                padding: 0 18px !important;
+                margin-bottom: clamp(16px, 1.8vh, 22px) !important;
+                font-size: 12.5px !important;
+                letter-spacing: 1.25px !important;
+            }
+
+            h1 {
+                font-size: clamp(40px, 3.65vw, 52px) !important;
+                line-height: 1.05 !important;
+                margin-bottom: 10px !important;
+                letter-spacing: -1.35px !important;
+            }
+
+            .subtitle {
+                font-size: 15px !important;
+                margin-bottom: clamp(18px, 2.2vh, 25px) !important;
+            }
+
+            .code-display {
+                width: min(100%, 730px) !important;
+                min-height: clamp(158px, 18.8vh, 196px) !important;
+                margin: 0 auto clamp(18px, 2.1vh, 24px) !important;
+                padding: 22px 36px !important;
+                border-radius: 36px !important;
+                gap: 32px !important;
+                font-size: clamp(100px, 8.6vw, 132px) !important;
+                letter-spacing: 0 !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 3.08ch !important;
+                max-width: none !important;
+                letter-spacing: 0.042em !important;
+            }
+
+            #codeLeft::after {
+                right: -16px !important;
+                top: 10% !important;
+                bottom: 10% !important;
+            }
+
+            .timer-widget {
+                min-height: 48px !important;
+                margin-bottom: clamp(20px, 2.5vh, 28px) !important;
+                transform: scale(0.98) !important;
+                transform-origin: center !important;
+            }
+
+            .timer-label {
+                font-size: 13.5px !important;
+            }
+
+            .action-layout-container,
+            .action-layout-v51 {
+                margin-bottom: clamp(26px, 3vh, 36px) !important;
+            }
+
+            .btn-primary-centered {
+                width: min(100%, 440px) !important;
+                height: 58px !important;
+                font-size: 15.5px !important;
+            }
+
+            .utility-dock {
+                width: min(100%, 440px) !important;
+                height: 54px !important;
+                min-height: 54px !important;
+            }
+
+            .utility-action {
+                height: 46px !important;
+                font-size: 13.5px !important;
+                gap: 8px !important;
+            }
+
+            .utility-icon {
+                width: 26px !important;
+                height: 26px !important;
+            }
+
+            .utility-icon svg {
+                width: 15px !important;
+                height: 15px !important;
+            }
+
+            .trust-panel {
+                width: min(100%, 860px) !important;
+                max-width: 860px !important;
+                min-height: 182px !important;
+                max-height: 225px !important;
+                margin: 0 auto !important;
+                border-radius: 26px !important;
+                flex: 1 1 auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 18px 34px 12px !important;
+                min-height: auto !important;
+                flex: 0 0 auto !important;
+            }
+
+            .trust-kicker,
+            .kicker {
+                font-size: 10px !important;
+                letter-spacing: 1.55px !important;
+                margin-bottom: 5px !important;
+                line-height: 1.1 !important;
+            }
+
+            .trust-title {
+                font-size: 19px !important;
+                line-height: 1.18 !important;
+                letter-spacing: -0.22px !important;
+            }
+
+            .trust-grid {
+                display: grid !important;
+                grid-template-columns: 1fr auto 1fr !important;
+                align-items: stretch !important;
+                flex: 1 1 auto !important;
+                min-height: 0 !important;
+            }
+
+            .trust-item {
+                height: auto !important;
+                min-height: 128px !important;
+                padding: 24px 32px !important;
+                display: grid !important;
+                grid-template-columns: 44px minmax(0, 1fr) !important;
+                column-gap: 17px !important;
+                align-items: center !important;
+            }
+
+            .trust-item .trust-copy {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                min-height: 82px !important;
+            }
+
+            .trust-icon {
+                width: 44px !important;
+                height: 44px !important;
+                border-radius: 16px !important;
+                align-self: center !important;
+            }
+
+            .trust-icon svg {
+                width: 21px !important;
+                height: 21px !important;
+            }
+
+            .support-contact-title,
+            .trust-item:nth-of-type(3) .trust-copy-title,
+            .security-item .trust-copy-title {
+                font-size: 17px !important;
+                line-height: 1.2 !important;
+                margin: 0 0 11px 0 !important;
+                white-space: nowrap !important;
+            }
+
+            .support-chip {
+                width: fit-content !important;
+                min-width: 0 !important;
+                height: 48px !important;
+                margin-top: 0 !important;
+                padding: 0 20px !important;
+                gap: 10px !important;
+                border-radius: 999px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 21px !important;
+                font-weight: 900 !important;
+                letter-spacing: -0.15px !important;
+            }
+
+            .chip-hint {
+                display: none !important;
+            }
+
+            .status-pulse-dot,
+            .status-dot {
+                width: 9px !important;
+                height: 9px !important;
+            }
+
+            .trust-copy p {
+                font-size: 13.8px !important;
+                line-height: 1.52 !important;
+                font-weight: 650 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+
+            .soft-tag {
+                height: 23px !important;
+                padding: 0 8px !important;
+                border-radius: 8px !important;
+            }
+
+            .security-footnote {
+                margin-top: 8px !important;
+                font-size: 12px !important;
+                line-height: 1.38 !important;
+            }
+
+            .trust-divider {
+                width: 1px !important;
+                height: auto !important;
+                margin: 24px 0 !important;
+                background: linear-gradient(180deg, transparent, #DDE5F0, transparent) !important;
+            }
+
+            .privacy-mascot {
+                width: 86px !important;
+                height: auto !important;
+                right: -42px !important;
+                top: 43% !important;
+            }
+        }
+
+        @media (min-width: 769px) and (max-height: 850px) {
+            main {
+                width: min(79vw, 1060px) !important;
+                height: 94vh !important;
+                min-height: 690px !important;
+                padding-top: 30px !important;
+                padding-bottom: 30px !important;
+            }
+
+            .brand-badge {
+                margin-bottom: 12px !important;
+            }
+
+            h1 {
+                font-size: clamp(35px, 3.15vw, 44px) !important;
+                margin-bottom: 7px !important;
+            }
+
+            .subtitle {
+                margin-bottom: 12px !important;
+            }
+
+            .code-display {
+                min-height: 142px !important;
+                margin-bottom: 15px !important;
+                font-size: clamp(84px, 7.4vw, 108px) !important;
+            }
+
+            .timer-widget {
+                margin-bottom: 14px !important;
+                transform: scale(0.9) !important;
+            }
+
+            .action-layout-container,
+            .action-layout-v51 {
+                margin-bottom: 18px !important;
+            }
+
+            .btn-primary-centered {
+                height: 52px !important;
+            }
+
+            .utility-dock {
+                height: 48px !important;
+                min-height: 48px !important;
+            }
+
+            .utility-action {
+                height: 40px !important;
+            }
+
+            .trust-panel {
+                min-height: 158px !important;
+                max-height: 188px !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding-top: 12px !important;
+                padding-bottom: 8px !important;
+            }
+
+            .trust-item {
+                min-height: 110px !important;
+                padding-top: 17px !important;
+                padding-bottom: 17px !important;
+            }
+
+            .support-chip {
+                height: 42px !important;
+                padding-left: 18px !important;
+                padding-right: 18px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 19px !important;
+            }
+
+            .trust-copy p {
+                font-size: 12.6px !important;
+                line-height: 1.42 !important;
+            }
+
+            .security-footnote {
+                font-size: 11px !important;
+                margin-top: 5px !important;
+            }
+        }
+
+
+        /* =========================================
+           V74 底部信息面板间距优化版
+           - 标题“有问题联系微信”和“安全建议”同一水平线对齐
+           - 内容整体上移，底部留出舒适空间
+           - 文字不再贴近底部边线
+           - 不改其他区域
+           ========================================= */
+
+        @media (min-width: 769px) {
+            .trust-panel {
+                min-height: 196px !important;
+                max-height: 236px !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 18px 34px 13px !important;
+            }
+
+            .trust-grid {
+                align-items: stretch !important;
+            }
+
+            .trust-item {
+                min-height: 138px !important;
+                padding: 24px 34px 28px !important;
+                grid-template-columns: 44px minmax(0, 1fr) !important;
+                column-gap: 18px !important;
+                align-items: start !important;
+            }
+
+            .trust-icon {
+                margin-top: 3px !important;
+                align-self: start !important;
+            }
+
+            .trust-item .trust-copy {
+                min-height: 92px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                padding-top: 0 !important;
+            }
+
+            .support-contact-title,
+            .trust-item:nth-of-type(3) .trust-copy-title,
+            .security-item .trust-copy-title {
+                font-size: 17px !important;
+                line-height: 1.2 !important;
+                margin: 0 0 13px 0 !important;
+                white-space: nowrap !important;
+            }
+
+            .support-chip {
+                height: 46px !important;
+                padding: 0 19px !important;
+                margin-top: 1px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 20px !important;
+                line-height: 1 !important;
+            }
+
+            .trust-copy p {
+                font-size: 13.2px !important;
+                line-height: 1.55 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .security-footnote {
+                margin-top: 8px !important;
+                font-size: 11.6px !important;
+                line-height: 1.4 !important;
+            }
+
+            .trust-divider {
+                margin: 24px 0 28px !important;
+            }
+        }
+
+        @media (min-width: 769px) and (max-height: 850px) {
+            .trust-panel {
+                min-height: 178px !important;
+                max-height: 204px !important;
+            }
+
+            .trust-panel-head,
+            .trust-head {
+                padding: 13px 32px 10px !important;
+            }
+
+            .trust-item {
+                min-height: 124px !important;
+                padding: 20px 30px 24px !important;
+            }
+
+            .trust-icon {
+                margin-top: 2px !important;
+            }
+
+            .trust-item .trust-copy {
+                min-height: 82px !important;
+            }
+
+            .support-contact-title,
+            .trust-item:nth-of-type(3) .trust-copy-title,
+            .security-item .trust-copy-title {
+                font-size: 16px !important;
+                margin-bottom: 11px !important;
+            }
+
+            .support-chip {
+                height: 42px !important;
+                padding-left: 18px !important;
+                padding-right: 18px !important;
+            }
+
+            .support-chip .button-label {
+                font-size: 19px !important;
+            }
+
+            .trust-copy p {
+                font-size: 12.5px !important;
+                line-height: 1.48 !important;
+            }
+
+            .security-footnote {
+                margin-top: 6px !important;
+                font-size: 11px !important;
+                line-height: 1.36 !important;
+            }
+
+            .trust-divider {
+                margin: 20px 0 24px !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .trust-item {
+                align-items: flex-start !important;
+            }
+
+            .trust-icon {
+                margin-top: 2px !important;
+            }
+
+            .trust-item .trust-copy {
+                justify-content: flex-start !important;
+            }
+
+            .support-contact-title,
+            .trust-item:nth-of-type(3) .trust-copy-title,
+            .security-item .trust-copy-title {
+                margin-top: 0 !important;
+                margin-bottom: 12px !important;
+                line-height: 1.2 !important;
+            }
+
+            .security-footnote {
+                margin-top: 12px !important;
+            }
+        }
+
+
+        /* =========================================
+           V75 电脑端验证码横向舒展版
+           - 只修改电脑端，不影响手机版
+           - 让 6 位验证码在中心面板内更舒展
+           - 减少左右空白，让主体更饱满
+           ========================================= */
+
+        @media (min-width: 769px) {
+            .code-display {
+                width: min(100%, 770px) !important;
+                min-height: clamp(162px, 18.8vh, 198px) !important;
+                padding-left: 42px !important;
+                padding-right: 42px !important;
+                gap: clamp(42px, 4.2vw, 58px) !important;
+                font-size: clamp(106px, 8.9vw, 134px) !important;
+                letter-spacing: 0 !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 3.22ch !important;
+                max-width: none !important;
+                letter-spacing: 0.072em !important;
+            }
+
+            #codeLeft {
+                text-align: right !important;
+            }
+
+            #codeRight {
+                text-align: left !important;
+            }
+
+            #codeLeft::after {
+                right: calc(-1 * clamp(21px, 2.1vw, 29px)) !important;
+                top: 10% !important;
+                bottom: 10% !important;
+            }
+        }
+
+        @media (min-width: 769px) and (max-height: 850px) {
+            .code-display {
+                width: min(100%, 730px) !important;
+                min-height: 150px !important;
+                padding-left: 38px !important;
+                padding-right: 38px !important;
+                gap: clamp(36px, 3.6vw, 50px) !important;
+                font-size: clamp(92px, 7.9vw, 114px) !important;
+            }
+
+            #codeLeft,
+            #codeRight {
+                min-width: 3.16ch !important;
+                letter-spacing: 0.064em !important;
+            }
+
+            #codeLeft::after {
+                right: calc(-1 * clamp(18px, 1.8vw, 25px)) !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="advanced-grid"></div>
+
+    <main>
+        <div class="corner-deco corner-tl"></div>
+        <div class="corner-deco corner-tr"></div>
+        <div class="corner-deco corner-bl"></div>
+        <div class="corner-deco corner-br"></div>
+
+        <div class="privacy-mascot" title="隐私安全护卫">
+            <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 50 60 C 85 60, 95 120, 50 135" fill="#F59E0B"/>
+                <path d="M 50 60 C 70 60, 80 110, 50 125" fill="#FBBF24"/>
+                <rect x="0" y="75" width="22" height="14" rx="7" fill="#FBBF24"/>
+                <rect x="0" y="105" width="22" height="14" rx="7" fill="#FBBF24"/>
+                <path d="M50 5 Q70 5 85 20 Q100 40 95 65 Q90 90 50 95 Q10 90 5 65 Q0 40 15 20 Q30 5 50 5 Z" fill="#F59E0B"/>
+                <path d="M50 15 Q65 15 75 25 Q85 40 85 60 Q80 80 50 85 Q20 80 15 60 Q15 40 25 25 Q35 15 50 15 Z" fill="#FBBF24"/>
+                <circle cx="22" cy="35" r="8" fill="#D97706"/>
+                <circle cx="78" cy="35" r="8" fill="#D97706"/>
+                <path d="M25 55 Q25 30 50 30 Q75 30 75 55 Q75 80 50 80 Q25 80 25 55 Z" fill="#FEF3C7"/>
+                <rect x="23" y="45" width="24" height="15" rx="3" fill="#0F172A"/>
+                <rect x="53" y="45" width="24" height="15" rx="3" fill="#0F172A"/>
+                <line x1="47" y1="52" x2="53" y2="52" stroke="#0F172A" stroke-width="4"/>
+                <polygon points="46,65 54,65 50,71" fill="#92400E"/>
+                <path d="M44 75 Q50 81 56 75" fill="none" stroke="#92400E" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <div class="brand-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 16px;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            GOOGLE MULTI-FA
+        </div>
+        
+        <h1>谷歌 2FA 验证器</h1>
+        <div class="subtitle">安全凭证在线生成与同步面板</div>
+
+        <div class="code-display" aria-label="当前动态验证码">
+            <span id="codeLeft">---</span>
+            <span id="codeRight">---</span>
+        </div>
+
+        <div class="timer-widget">
+            <div class="timer-ring-wrapper">
+                <svg class="timer-ring" viewBox="0 0 36 36">
+                    <circle class="ring-bg" cx="18" cy="18" r="15"></circle>
+                    <circle class="ring-fill" id="timerRing" cx="18" cy="18" r="15"></circle>
+                </svg>
+                <div class="timer-number" id="countdownNum">30</div>
+            </div>
+            <span class="timer-label">秒后自动刷新动态验证码</span>
+        </div>
+
+        <p class="inline-error" id="inlineError" hidden></p>
+
+        <div class="action-layout-container action-layout-v51">
+            <button class="btn-primary-centered" id="copyCode" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor" style="width: 20px;">
+                    <rect x="8" y="8" width="11" height="11" rx="1.8"></rect>
+                    <path d="M5 15V6.8C5 5.8 5.8 5 6.8 5H15"></path>
+                </svg>
+                <span class="button-label">一键复制动态验证码</span>
+            </button>
+
+            <div class="utility-dock" aria-label="辅助操作">
+                <button class="utility-action" id="copyLink" type="button">
+                    <span class="utility-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                        </svg>
+                    </span>
+                    <span class="button-label">复制完整链接</span>
+                </button>
+
+                <span class="utility-divider" aria-hidden="true"></span>
+
+                <button class="utility-action" id="openSecret" type="button">
+                    <span class="utility-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                        </svg>
+                    </span>
+                    <span class="button-label">更新验证密钥</span>
+                </button>
+            </div>
+        </div>
+
+        <section class="trust-panel" aria-label="支持与安全信息">
+            <div class="trust-panel-head">
+                <div>
+                    <div class="trust-kicker">SUPPORT & SECURITY</div>
+                    <div class="trust-title">账户支持与安全建议</div>
+                </div>
+            </div>
+
+            <div class="trust-grid">
+                <div class="trust-item support-item">
+                    <div class="trust-icon support-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.556 0 8.25-3.108 8.25-6.944S16.556 6.36 12 6.36s-8.25 3.108-8.25 6.945c0 2.03 1.036 3.856 2.688 5.126l-.53 2.45 2.702-1.35c1.035.46 2.185.72 3.39.72Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 13.125h.008v.008H9.75v-.008Zm2.25 0h.008v.008H12v-.008Zm2.25 0h.008v.008h-.008v-.008Z" />
+                        </svg>
+                    </div>
+                    <div class="trust-copy">
+                        <div class="trust-copy-title">有问题联系微信：</div>
+                        <button class="support-chip" id="supportButton" type="button">
+                            <span class="status-pulse-dot" aria-hidden="true"></span>
+                            <span class="button-label">Cedars8</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="trust-divider" aria-hidden="true"></div>
+
+                <div class="trust-item security-item">
+                    <div class="trust-icon security-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.4" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75 5.25 6v5.25c0 4.556 2.878 7.808 6.75 9 3.872-1.192 6.75-4.444 6.75-9V6L12 3.75Z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 12.25 11.25 13.75 14.5 10.5" />
+                        </svg>
+                    </div>
+                    <div class="trust-copy">
+                        <div class="trust-copy-title">安全建议</div>
+                        <p>首次登录后建议在 <span class="soft-tag">1 天内</span> 更新为个人私有验证器密钥，减少长期共用凭证风险。</p>
+                        <div class="security-footnote">建议完成后重新保存自己的身份验证器。</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="keyModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <form class="modal-box" id="secretForm">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 24px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                        </svg>
+                    </div>
+                    <div class="modal-title-text">
+                        <div class="modal-subtitle">身份验证器设置</div>
+                        <h3 id="modalTitle">更换验证密钥</h3>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="closeDialog" type="button" aria-label="关闭">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width: 20px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <label for="secretInput">Base32 密钥或 otpauth:// 链接</label>
+                <textarea class="modal-textarea" id="secretInput" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例如：JBSWY3DPEHPK3PXP"></textarea>
+                <p class="modal-helper">支持直接输入密钥，或 /密钥、#密钥、?key=密钥 三种直达方式。</p>
+                <p class="modal-error" id="fieldError" hidden></p>
+            </div>
+
+            <div class="modal-btns">
+                <button class="btn-save" type="submit">生成验证码</button>
+                <button class="btn-cancel" id="cancelDialog" type="button">取消</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="toast" id="toast">已复制</div>
+
+
+    <script>
+    (function () {
+      "use strict";
+
+      var state = {
+        secret: "",
+        digits: 6,
+        period: 30,
+        code: "",
+        lastCounter: -1
+      };
+
+      var ringLength = 94.248;
+
+      function $(selector) {
+        return document.querySelector(selector);
+      }
+
+      var modal = $("#keyModal");
+      var secretInput = $("#secretInput");
+      var fieldError = $("#fieldError");
+      var toast = $("#toast");
+      var toastTimer;
+
+      function base32ToBytes(value) {
+        var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+        var clean = String(value || "").toUpperCase().replace(/[\s=-]/g, "");
+
+        if (!clean) {
+          throw new Error("请输入有效的 Base32 密钥");
+        }
+
+        var bits = "";
+        var bytes = [];
+
+        for (var i = 0; i < clean.length; i += 1) {
+          var index = alphabet.indexOf(clean.charAt(i));
+
+          if (index < 0) {
+            throw new Error("密钥包含无效字符，只能包含 A-Z 和 2-7");
+          }
+
+          bits += index.toString(2).padStart(5, "0");
+        }
+
+        for (var bit = 0; bit + 8 <= bits.length; bit += 8) {
+          bytes.push(parseInt(bits.slice(bit, bit + 8), 2));
+        }
+
+        if (!bytes.length) {
+          throw new Error("密钥长度不足");
+        }
+
+        return bytes;
+      }
+
+      function rotateLeft(value, shift) {
+        return (value << shift) | (value >>> (32 - shift));
+      }
+
+      function sha1(input) {
+        var bytes = input.slice();
+        var bitLength = bytes.length * 8;
+
+        bytes.push(128);
+
+        while ((bytes.length % 64) !== 56) {
+          bytes.push(0);
+        }
+
+        var high = Math.floor(bitLength / 4294967296);
+        var low = bitLength >>> 0;
+
+        for (var h = 3; h >= 0; h -= 1) {
+          bytes.push((high >>> (h * 8)) & 255);
+        }
+
+        for (var l = 3; l >= 0; l -= 1) {
+          bytes.push((low >>> (l * 8)) & 255);
+        }
+
+        var h0 = 0x67452301;
+        var h1 = 0xefcdab89;
+        var h2 = 0x98badcfe;
+        var h3 = 0x10325476;
+        var h4 = 0xc3d2e1f0;
+        var words = new Array(80);
+
+        for (var offset = 0; offset < bytes.length; offset += 64) {
+          for (var w = 0; w < 16; w += 1) {
+            var p = offset + w * 4;
+            words[w] = ((bytes[p] << 24) | (bytes[p + 1] << 16) | (bytes[p + 2] << 8) | bytes[p + 3]) | 0;
+          }
+
+          for (var next = 16; next < 80; next += 1) {
+            words[next] = rotateLeft(words[next - 3] ^ words[next - 8] ^ words[next - 14] ^ words[next - 16], 1);
+          }
+
+          var a = h0;
+          var b = h1;
+          var c = h2;
+          var d = h3;
+          var e = h4;
+
+          for (var round = 0; round < 80; round += 1) {
+            var f;
+            var k;
+
+            if (round < 20) {
+              f = (b & c) | ((~b) & d);
+              k = 0x5a827999;
+            } else if (round < 40) {
+              f = b ^ c ^ d;
+              k = 0x6ed9eba1;
+            } else if (round < 60) {
+              f = (b & c) | (b & d) | (c & d);
+              k = 0x8f1bbcdc;
+            } else {
+              f = b ^ c ^ d;
+              k = 0xca62c1d6;
+            }
+
+            var temp = (rotateLeft(a, 5) + f + e + k + words[round]) | 0;
+            e = d;
+            d = c;
+            c = rotateLeft(b, 30);
+            b = a;
+            a = temp;
+          }
+
+          h0 = (h0 + a) | 0;
+          h1 = (h1 + b) | 0;
+          h2 = (h2 + c) | 0;
+          h3 = (h3 + d) | 0;
+          h4 = (h4 + e) | 0;
+        }
+
+        var output = [];
+
+        [h0, h1, h2, h3, h4].forEach(function (word) {
+          output.push(
+            (word >>> 24) & 255,
+            (word >>> 16) & 255,
+            (word >>> 8) & 255,
+            word & 255
+          );
+        });
+
+        return output;
+      }
+
+      function hmacSha1(key, message) {
+        var normalized = key.length > 64 ? sha1(key) : key.slice();
+
+        while (normalized.length < 64) {
+          normalized.push(0);
+        }
+
+        var inner = [];
+        var outer = [];
+
+        for (var i = 0; i < 64; i += 1) {
+          inner.push(normalized[i] ^ 0x36);
+          outer.push(normalized[i] ^ 0x5c);
+        }
+
+        return sha1(outer.concat(sha1(inner.concat(message))));
+      }
+
+      function generateTotp(timestamp) {
+        var counter = Math.floor(timestamp / 1000 / state.period);
+        var high = Math.floor(counter / 4294967296);
+        var low = counter >>> 0;
+        var message = [];
+
+        for (var h = 3; h >= 0; h -= 1) {
+          message.push((high >>> (h * 8)) & 255);
+        }
+
+        for (var l = 3; l >= 0; l -= 1) {
+          message.push((low >>> (l * 8)) & 255);
+        }
+
+        var digest = hmacSha1(base32ToBytes(state.secret), message);
+        var offset = digest[digest.length - 1] & 15;
+
+        var binary = (
+          ((digest[offset] & 127) << 24) |
+          (digest[offset + 1] << 16) |
+          (digest[offset + 2] << 8) |
+          digest[offset + 3]
+        ) >>> 0;
+
+        return String(binary % Math.pow(10, state.digits)).padStart(state.digits, "0");
+      }
+
+      function parseInput(raw) {
+        var value = String(raw || "").trim();
+
+        if (!value) {
+          throw new Error("请输入密钥或设置链接");
+        }
+
+        if (value.toLowerCase().indexOf("otpauth://") !== 0) {
+          base32ToBytes(value);
+
+          return {
+            secret: value.toUpperCase().replace(/[\s=-]/g, ""),
+            digits: 6,
+            period: 30
+          };
+        }
+
+        var url;
+
+        try {
+          url = new URL(value);
+        } catch (error) {
+          throw new Error("设置链接格式不正确");
+        }
+
+        if (url.hostname.toLowerCase() !== "totp") {
+          throw new Error("当前仅支持 TOTP 设置链接");
+        }
+
+        var algorithm = String(url.searchParams.get("algorithm") || "SHA1").toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+        if (algorithm !== "SHA1") {
+          throw new Error("当前版本仅支持常用的 SHA-1 验证码");
+        }
+
+        var secret = url.searchParams.get("secret") || "";
+        base32ToBytes(secret);
+
+        var digits = Number(url.searchParams.get("digits") || 6);
+        var period = Number(url.searchParams.get("period") || 30);
+
+        if ([6, 7, 8].indexOf(digits) < 0 || period < 5 || period > 300) {
+          throw new Error("验证码位数或刷新周期无效");
+        }
+
+        return {
+          secret: secret.toUpperCase().replace(/[\s=-]/g, ""),
+          digits: digits,
+          period: period
+        };
+      }
+
+      function getSecretFromUrl() {
+        var hashValue = decodeURIComponent((location.hash || "").slice(1).trim());
+
+        if (hashValue) {
+          return hashValue;
+        }
+
+        var params = new URLSearchParams(location.search);
+        var queryValue = params.get("key") || params.get("secret") || params.get("s");
+
+        if (queryValue) {
+          return queryValue;
+        }
+
+        var pathValue = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, "").trim());
+
+        if (
+          pathValue &&
+          pathValue !== "index.html" &&
+          !pathValue.includes(".") &&
+          /^[A-Za-z2-7=\-\s]+$/.test(pathValue)
+        ) {
+          return pathValue;
+        }
+
+        return "";
+      }
+
+      function isHttpPage() {
+        return location.protocol === "http:" || location.protocol === "https:";
+      }
+
+      function safeUpdateAddress() {
+        if (!state.secret || !isHttpPage()) {
+          return;
+        }
+
+        try {
+          var nextPath = "/" + encodeURIComponent(state.secret.toLowerCase());
+
+          if (location.pathname !== nextPath) {
+            history.replaceState(null, "", nextPath);
+          }
+        } catch (error) {
+          // 本地 file:// 预览或部分内置浏览器可能不允许修改地址栏，忽略即可。
+        }
+      }
+
+      function setupRing() {
+        var ring = $("#timerRing");
+
+        if (!ring) {
+          return;
+        }
+
+        ring.style.strokeDasharray = ringLength + " " + ringLength;
+        ring.style.strokeDashoffset = "0";
+      }
+
+      function renderPlaceholder() {
+        $("#codeLeft").textContent = "---";
+        $("#codeRight").textContent = "---";
+        $("#countdownNum").textContent = String(state.period);
+        var ring = $("#timerRing");
+
+        if (ring) {
+          ring.style.strokeDashoffset = "0";
+        }
+
+        state.code = "";
+        state.lastCounter = -1;
+      }
+
+      function updateCode() {
+        if (!state.secret) {
+          renderPlaceholder();
+          return;
+        }
+
+        var now = Date.now();
+        var epoch = Math.floor(now / 1000);
+        var cycleMs = state.period * 1000;
+        var remainingMs = cycleMs - (now % cycleMs);
+        var remaining = Math.ceil(remainingMs / 1000);
+        var counter = Math.floor(epoch / state.period);
+        var progress = remainingMs / cycleMs;
+        var ring = $("#timerRing");
+
+        $("#countdownNum").textContent = String(remaining);
+
+        if (ring) {
+          ring.style.strokeDashoffset = String(ringLength * (1 - progress));
+        }
+
+        if (counter === state.lastCounter) {
+          return;
+        }
+
+        try {
+          state.code = generateTotp(now);
+          state.lastCounter = counter;
+
+          var midpoint = Math.ceil(state.code.length / 2);
+
+          $("#codeLeft").textContent = state.code.slice(0, midpoint);
+          $("#codeRight").textContent = state.code.slice(midpoint);
+          var codeDisplay = document.querySelector(".code-display");
+          if (codeDisplay) {
+            codeDisplay.classList.remove("code-refreshing");
+            void codeDisplay.offsetWidth;
+            codeDisplay.classList.add("code-refreshing");
+          }
+          $("#inlineError").hidden = true;
+        } catch (error) {
+          $("#inlineError").textContent = error.message || "验证码生成失败";
+          $("#inlineError").hidden = false;
+        }
+      }
+
+      function buildLink() {
+        if (!state.secret || !isHttpPage()) {
+          return "";
+        }
+
+        return location.origin + "/" + encodeURIComponent(state.secret.toLowerCase());
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toast.classList.remove("show");
+        }, 1700);
+      }
+
+      function feedback(button, message) {
+        var label = button.querySelector(".button-label");
+
+        if (!label) {
+          return;
+        }
+
+        var old = label.textContent;
+        label.textContent = message;
+
+        setTimeout(function () {
+          label.textContent = old;
+        }, 1500);
+      }
+
+      function copyText(text, button, successMessage) {
+        if (!text) {
+          showToast("请先输入密钥");
+          return;
+        }
+
+        function success() {
+          if (button) {
+            feedback(button, successMessage);
+          }
+
+          showToast(successMessage);
+        }
+
+        function fallback() {
+          var helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.opacity = "0";
+
+          document.body.appendChild(helper);
+          helper.select();
+
+          try {
+            document.execCommand("copy");
+            success();
+          } catch (error) {
+            window.prompt("浏览器未允许自动复制，请手动复制：", text);
+          }
+
+          helper.remove();
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(success).catch(fallback);
+        } else {
+          fallback();
+        }
+      }
+
+      function openModal() {
+        secretInput.value = "";
+        fieldError.hidden = true;
+        modal.classList.add("show");
+        modal.classList.add("active");
+
+        setTimeout(function () {
+          secretInput.focus();
+        }, 60);
+      }
+
+      function closeModal() {
+        modal.classList.remove("show");
+        modal.classList.remove("active");
+      }
+
+      function applySecret(raw, shouldUpdateUrl) {
+        var next = parseInput(raw);
+
+        state.secret = next.secret;
+        state.digits = next.digits;
+        state.period = next.period;
+        state.lastCounter = -1;
+
+        updateCode();
+
+        if (shouldUpdateUrl) {
+          safeUpdateAddress();
+        }
+      }
+
+      $("#copyCode").addEventListener("click", function () {
+        if (!state.code) {
+          showToast("请先输入密钥");
+          return;
+        }
+
+        copyText(state.code, this, "验证码已复制");
+      });
+
+      $("#copyLink").addEventListener("click", function () {
+        if (!isHttpPage()) {
+          showToast("本地预览无法复制完整链接，上传到 Vercel 后即可使用");
+          return;
+        }
+
+        copyText(buildLink(), this, "完整链接已复制");
+      });
+
+      $("#openSecret").addEventListener("click", openModal);
+      $("#closeDialog").addEventListener("click", closeModal);
+      $("#cancelDialog").addEventListener("click", closeModal);
+
+      $("#supportButton").addEventListener("click", function () {
+        copyText("Cedars8", this, "微信已复制");
+      });
+
+      modal.addEventListener("click", function (event) {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      $("#secretForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        try {
+          applySecret(secretInput.value, true);
+          closeModal();
+          showToast("新密钥已生效");
+        } catch (error) {
+          fieldError.textContent = error.message || "无法识别此密钥";
+          fieldError.hidden = false;
+          secretInput.focus();
+        }
+      });
+
+      window.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && (modal.classList.contains("show") || modal.classList.contains("active"))) {
+          closeModal();
+        }
+      });
+
+      function enhanceButtonMotion() {
+        var targets = document.querySelectorAll(
+          "button, .utility-action, .support-chip, .btn-primary-centered, .btn-secondary, .wechat-pill-badge, .wechat-badge, .btn-save, .btn-cancel, .modal-close-btn"
+        );
+
+        targets.forEach(function (button) {
+          button.addEventListener("pointerdown", function (event) {
+            var rect = button.getBoundingClientRect();
+            var x = ((event.clientX - rect.left) / Math.max(rect.width, 1)) * 100;
+            var y = ((event.clientY - rect.top) / Math.max(rect.height, 1)) * 100;
+
+            button.style.setProperty("--tap-x", x + "%");
+            button.style.setProperty("--tap-y", y + "%");
+            button.classList.add("is-pressing");
+          });
+
+          ["pointerup", "pointercancel", "pointerleave", "blur"].forEach(function (eventName) {
+            button.addEventListener(eventName, function () {
+              window.setTimeout(function () {
+                button.classList.remove("is-pressing");
+              }, 120);
+            });
+          });
+        });
+      }
+
+      (function init() {
+        enhanceButtonMotion();
+        setupRing();
+
+        var fromUrl = getSecretFromUrl();
+
+        if (fromUrl) {
+          try {
+            applySecret(fromUrl, true);
+          } catch (error) {
+            renderPlaceholder();
+            $("#inlineError").textContent = error.message || "链接里的密钥格式错误";
+            $("#inlineError").hidden = false;
+            setTimeout(openModal, 150);
+          }
+        } else {
+          renderPlaceholder();
+          setTimeout(openModal, 180);
+        }
+
+        setInterval(updateCode, 250);
+      })();
+    })();
+  </script>
+</body>
+</html>
