@@ -1179,7 +1179,6 @@
       return str.replace(/[\s=-]/g, '').toUpperCase();
     }
 
-    // 从 URL 提取密钥
     function getSecretFromUrl() {
       try {
         var hashValue = decodeURIComponent((location.hash || "").slice(1).trim());
@@ -1202,19 +1201,19 @@
       return value ? cleanSecret(value) : 'JBSWY3DPEHPK3PXP';
     }
 
-    // 动态同步浏览器地址栏（无刷新切换为 /32位密钥）
+    // 动态同步浏览器地址栏（全小写 /32位密钥）
     function updateUrlBar(secret) {
       try {
         if (secret && window.history && window.history.replaceState) {
-          window.history.replaceState(null, '', '/' + secret);
+          window.history.replaceState(null, '', '/' + secret.toLowerCase());
         }
       } catch (e) {}
     }
 
     function maskKey(key) {
       if (!key) return '';
-      if (key.length <= 8) return key;
-      return key.slice(0, 4) + '••••••' + key.slice(-4);
+      if (key.length <= 8) return key.toLowerCase();
+      return key.slice(0, 4).toLowerCase() + '••••••' + key.slice(-4).toLowerCase();
     }
 
     function maskEmail(email) {
@@ -1227,10 +1226,10 @@
     }
 
     let currentSecret = extractSecretFromURL();
-    // 页面初始化同步地址栏
+    // 初始进入页面自动规格化地址栏为小写
     updateUrlBar(currentSecret);
 
-    // Base32 与 HMAC-SHA1 本地算法
+    // Base32 与 HMAC-SHA1 算法
     function base32ToBytes(value) {
       var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
       var clean = String(value || "").toUpperCase().replace(/[\s=-]/g, "");
@@ -1512,7 +1511,7 @@
       showToast('常用账号已成功保存至本地看板');
     });
 
-    // 模态框与历史更换记录
+    // 模态框与历史记录管理
     function getHistory() {
       try { return JSON.parse(localStorage.getItem('twofa_recent_history') || '[]'); } catch (e) { return []; }
     }
@@ -1546,11 +1545,11 @@
       `).join('');
     }
     window.selectHistoryKey = function(sec) {
-      document.getElementById('keyInput').value = sec;
+      document.getElementById('keyInput').value = sec.toLowerCase();
       showToast('已填入历史密钥');
     };
     window.copyHistoryDirectLink = function(sec) {
-      const url = `${window.location.origin}/${sec}`;
+      const url = `${window.location.origin}/${sec.toLowerCase()}`;
       copyText(url).then(() => showToast('该记录完整链接已复制'));
     };
 
@@ -1618,9 +1617,9 @@
     document.getElementById('copyBtn').addEventListener('click', copyMainCode);
     otpDisplay.addEventListener('click', copyMainCode);
 
-    // 复制完整快捷链接（直接生成 https://域名/密钥）
+    // 复制完整快捷链接（全小写输出 https://域名/小写密钥）
     document.getElementById('copyLinkBtn').addEventListener('click', () => {
-      const url = `${window.location.origin}/${currentSecret}`;
+      const url = `${window.location.origin}/${currentSecret.toLowerCase()}`;
       copyText(url).then(() => showToast('当前完整快捷链接已复制'));
     });
 
@@ -1630,11 +1629,11 @@
     document.getElementById('topSupportBtn').addEventListener('click', copyWechat);
     document.getElementById('bottomWechatBanner').addEventListener('click', copyWechat);
 
-    // 弹窗控制：每次打开自动清空输入框
+    // 弹窗控制：打开自动置空
     const keyModal = document.getElementById('keyModal');
     const keyInput = document.getElementById('keyInput');
     const openModal = () => {
-      keyInput.value = ''; // 确保每次打开自动空白
+      keyInput.value = '';
       renderHistoryUI();
       keyModal.classList.add('active');
       keyInput.focus();
@@ -1645,12 +1644,12 @@
     document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
     document.getElementById('closeModalCross').addEventListener('click', closeModal);
 
-    // 保存新密钥并同步更新网址栏
+    // 保存新密钥并更新地址栏为小写
     document.getElementById('saveKeyBtn').addEventListener('click', () => {
       const val = cleanSecret(keyInput.value.trim());
       if (val) {
         currentSecret = val;
-        updateUrlBar(currentSecret); // 网址栏实时显示32位密钥
+        updateUrlBar(currentSecret);
         saveToHistory(currentSecret);
         otpDisplay.innerText = '------';
         rawMainCode = '';
