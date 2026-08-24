@@ -1201,7 +1201,6 @@
       return value ? cleanSecret(value) : 'JBSWY3DPEHPK3PXP';
     }
 
-    // 动态同步浏览器地址栏（全小写 /32位密钥）
     function updateUrlBar(secret) {
       try {
         if (secret && window.history && window.history.replaceState) {
@@ -1212,8 +1211,9 @@
 
     function maskKey(key) {
       if (!key) return '';
-      if (key.length <= 8) return key.toLowerCase();
-      return key.slice(0, 4).toLowerCase() + '••••••' + key.slice(-4).toLowerCase();
+      const lower = key.toLowerCase();
+      if (lower.length <= 8) return lower;
+      return lower.slice(0, 4) + '••••••' + lower.slice(-4);
     }
 
     function maskEmail(email) {
@@ -1226,10 +1226,8 @@
     }
 
     let currentSecret = extractSecretFromURL();
-    // 初始进入页面自动规格化地址栏为小写
     updateUrlBar(currentSecret);
 
-    // Base32 与 HMAC-SHA1 算法
     function base32ToBytes(value) {
       var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
       var clean = String(value || "").toUpperCase().replace(/[\s=-]/g, "");
@@ -1366,7 +1364,6 @@
       });
     }
 
-    // 标签页切换
     const tabMainBtn = document.getElementById('tabMainBtn');
     const tabDashBtn = document.getElementById('tabDashBtn');
     const viewMain = document.getElementById('viewMain');
@@ -1387,7 +1384,6 @@
       renderAccountsUI();
     });
 
-    // 账号管理看板
     function getStoredAccounts() {
       try {
         return JSON.parse(localStorage.getItem('twofa_saved_accounts') || '[]');
@@ -1511,7 +1507,6 @@
       showToast('常用账号已成功保存至本地看板');
     });
 
-    // 模态框与历史记录管理
     function getHistory() {
       try { return JSON.parse(localStorage.getItem('twofa_recent_history') || '[]'); } catch (e) { return []; }
     }
@@ -1555,7 +1550,6 @@
 
     saveToHistory(currentSecret);
 
-    // 全局定时器调度
     const otpDisplay = document.getElementById('otpDisplay');
     const progressRing = document.getElementById('progressRing');
     const countdownSec = document.getElementById('countdownSec');
@@ -1607,7 +1601,6 @@
       }
     }
 
-    // 按钮事件绑定
     const copyMainCode = () => {
       const clean = rawMainCode.replace(/\s+/g, '');
       if (!clean || clean === '------') return;
@@ -1617,7 +1610,6 @@
     document.getElementById('copyBtn').addEventListener('click', copyMainCode);
     otpDisplay.addEventListener('click', copyMainCode);
 
-    // 复制完整快捷链接（全小写输出 https://域名/小写密钥）
     document.getElementById('copyLinkBtn').addEventListener('click', () => {
       const url = `${window.location.origin}/${currentSecret.toLowerCase()}`;
       copyText(url).then(() => showToast('当前完整快捷链接已复制'));
@@ -1629,7 +1621,6 @@
     document.getElementById('topSupportBtn').addEventListener('click', copyWechat);
     document.getElementById('bottomWechatBanner').addEventListener('click', copyWechat);
 
-    // 弹窗控制：打开自动置空
     const keyModal = document.getElementById('keyModal');
     const keyInput = document.getElementById('keyInput');
     const openModal = () => {
@@ -1644,7 +1635,6 @@
     document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
     document.getElementById('closeModalCross').addEventListener('click', closeModal);
 
-    // 保存新密钥并更新地址栏为小写
     document.getElementById('saveKeyBtn').addEventListener('click', () => {
       const val = cleanSecret(keyInput.value.trim());
       if (val) {
@@ -1661,7 +1651,6 @@
       }
     });
 
-    // 启动时钟
     globalTimerTick();
     setInterval(globalTimerTick, 1000);
   </script>
