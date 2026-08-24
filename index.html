@@ -1145,7 +1145,7 @@
         <label style="font-size:0.92rem; font-weight:800; color:#09101d; display:block; margin-bottom:0.6rem;">Base32 密钥或 otpauth:// 链接</label>
         <textarea id="keyInput" class="modal-textarea" placeholder="例如：JBSWY3DPEHPK3PXP" spellcheck="false"></textarea>
       </div>
-      <div class="modal-hint">支持直接输入密钥，或 /密钥、#密钥、?key=密钥 三种直达方式。</div>
+      <div class="modal-hint">支持直接输入密钥，或 /密钥、#密钥、?key=密钥 直达。</div>
 
       <div class="history-panel">
         <div class="history-header">
@@ -1170,7 +1170,16 @@
   </div>
 
   <script>
-    // 1. URL 解析与密钥提取
+    function cleanSecret(str) {
+      if (!str) return '';
+      if (str.includes('secret=')) {
+        const match = str.match(/secret=([A-Za-z2-7]+)/i);
+        if (match) return match[1].toUpperCase();
+      }
+      return str.replace(/[\s=-]/g, '').toUpperCase();
+    }
+
+    // 从 URL 提取密钥
     function getSecretFromUrl() {
       try {
         var hashValue = decodeURIComponent((location.hash || "").slice(1).trim());
@@ -1181,25 +1190,25 @@
         if (queryValue) return queryValue;
 
         var pathValue = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, "").trim());
-        if (pathValue && pathValue !== "index.html" && !pathValue.includes(".") && /^[A-Za-z2-7=\-\s]+$/.test(pathValue)) {
+        if (pathValue && pathValue !== "index.html" && !pathValue.includes(".")) {
           return pathValue;
         }
       } catch (e) {}
       return "";
     }
 
-    function cleanSecret(str) {
-      if (!str) return '';
-      if (str.includes('secret=')) {
-        const match = str.match(/secret=([A-Za-z2-7]+)/i);
-        if (match) return match[1].toUpperCase();
-      }
-      return str.replace(/[\s=-]/g, '').toUpperCase();
-    }
-
     function extractSecretFromURL() {
       var value = getSecretFromUrl();
       return value ? cleanSecret(value) : 'JBSWY3DPEHPK3PXP';
+    }
+
+    // 动态同步浏览器地址栏（无刷新切换为 /32位密钥）
+    function updateUrlBar(secret) {
+      try {
+        if (secret && window.history && window.history.replaceState) {
+          window.history.replaceState(null, '', '/' + secret);
+        }
+      } catch (e) {}
     }
 
     function maskKey(key) {
@@ -1218,8 +1227,10 @@
     }
 
     let currentSecret = extractSecretFromURL();
+    // 页面初始化同步地址栏
+    updateUrlBar(currentSecret);
 
-    // 2. Base32 与 HMAC-SHA1 本地算法
+    // Base32 与 HMAC-SHA1 本地算法
     function base32ToBytes(value) {
       var alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
       var clean = String(value || "").toUpperCase().replace(/[\s=-]/g, "");
@@ -1334,7 +1345,6 @@
       }
     }
 
-    // 3. 通用剪贴板降级复制
     function copyText(text) {
       if (!text) return Promise.reject();
       if (navigator.clipboard && window.isSecureContext) {
@@ -1357,7 +1367,7 @@
       });
     }
 
-    // 4. 标签页切换
+    // 标签页切换
     const tabMainBtn = document.getElementById('tabMainBtn');
     const tabDashBtn = document.getElementById('tabDashBtn');
     const viewMain = document.getElementById('viewMain');
@@ -1378,7 +1388,7 @@
       renderAccountsUI();
     });
 
-    // 5. 账号管理看板
+    // 账号管理看板
     function getStoredAccounts() {
       try {
         return JSON.parse(localStorage.getItem('twofa_saved_accounts') || '[]');
@@ -1502,7 +1512,7 @@
       showToast('常用账号已成功保存至本地看板');
     });
 
-    // 6. 模态框与历史更换记录
+    // 模态框与历史更换记录
     function getHistory() {
       try { return JSON.parse(localStorage.getItem('twofa_recent_history') || '[]'); } catch (e) { return []; }
     }
@@ -1540,14 +1550,13 @@
       showToast('已填入历史密钥');
     };
     window.copyHistoryDirectLink = function(sec) {
-      const base = window.location.href.split('#')[0].split('?')[0];
-      const url = `${base}#${sec}`;
+      const url = `${window.location.origin}/${sec}`;
       copyText(url).then(() => showToast('该记录完整链接已复制'));
     };
 
     saveToHistory(currentSecret);
 
-    // 7. 全局定时器调度
+    // 全局定时器调度
     const otpDisplay = document.getElementById('otpDisplay');
     const progressRing = document.getElementById('progressRing');
     const countdownSec = document.getElementById('countdownSec');
@@ -1599,7 +1608,7 @@
       }
     }
 
-    // 8. 按钮事件绑定
+    // 按钮事件绑定
     const copyMainCode = () => {
       const clean = rawMainCode.replace(/\s+/g, '');
       if (!clean || clean === '------') return;
@@ -1609,10 +1618,10 @@
     document.getElementById('copyBtn').addEventListener('click', copyMainCode);
     otpDisplay.addEventListener('click', copyMainCode);
 
+    // 复制完整快捷链接（直接生成 https://域名/密钥）
     document.getElementById('copyLinkBtn').addEventListener('click', () => {
-      const base = window.location.href.split('#')[0].split('?')[0];
-      const url = `${base}#${currentSecret}`;
-      copyText(url).then(() => showToast('当前验证器快捷链接已复制'));
+      const url = `${window.location.origin}/${currentSecret}`;
+      copyText(url).then(() => showToast('当前完整快捷链接已复制'));
     });
 
     const copyWechat = () => {
@@ -1621,10 +1630,11 @@
     document.getElementById('topSupportBtn').addEventListener('click', copyWechat);
     document.getElementById('bottomWechatBanner').addEventListener('click', copyWechat);
 
+    // 弹窗控制：每次打开自动清空输入框
     const keyModal = document.getElementById('keyModal');
     const keyInput = document.getElementById('keyInput');
     const openModal = () => {
-      keyInput.value = currentSecret;
+      keyInput.value = ''; // 确保每次打开自动空白
       renderHistoryUI();
       keyModal.classList.add('active');
       keyInput.focus();
@@ -1635,10 +1645,12 @@
     document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
     document.getElementById('closeModalCross').addEventListener('click', closeModal);
 
+    // 保存新密钥并同步更新网址栏
     document.getElementById('saveKeyBtn').addEventListener('click', () => {
       const val = cleanSecret(keyInput.value.trim());
       if (val) {
         currentSecret = val;
+        updateUrlBar(currentSecret); // 网址栏实时显示32位密钥
         saveToHistory(currentSecret);
         otpDisplay.innerText = '------';
         rawMainCode = '';
